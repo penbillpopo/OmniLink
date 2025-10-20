@@ -1,8 +1,0 @@
-<cs-dialog [open]="open" [title]="title" (openChange)="handleOpenChange($event)">
-  <p class="cs-confirm-dialog__message">{{ message }}</p>
-
-  <div csDialogActions class="cs-confirm-dialog__actions">
-    <cs-button variant="text" (click)="handleClose()">{{ cancelLabel }}</cs-button>
-    <cs-button variant="danger" (click)="handleConfirm()">{{ confirmLabel }}</cs-button>
-  </div>
-</cs-dialog>
