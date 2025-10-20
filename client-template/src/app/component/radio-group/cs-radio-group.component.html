@@ -1,0 +1,25 @@
+<fieldset class="cs-radio-group" [class.cs-radio-group--horizontal]="direction === 'horizontal'">
+  <legend *ngIf="label">{{ label }}</legend>
+
+  <label
+    class="cs-radio-group__option"
+    *ngFor="let option of options"
+    [class.cs-radio-group__option--disabled]="disabled || option.disabled"
+  >
+    <input
+      class="cs-radio-group__native"
+      type="radio"
+      [name]="name"
+      [value]="option.value"
+      [checked]="option.value === value"
+      [disabled]="disabled || option.disabled"
+      (change)="handleChange(option)"
+      (blur)="handleBlur()"
+    />
+    <span class="cs-radio-group__control"></span>
+    <span class="cs-radio-group__label">
+      <span>{{ option.label }}</span>
+      <small *ngIf="option.hint">{{ option.hint }}</small>
+    </span>
+  </label>
+</fieldset>

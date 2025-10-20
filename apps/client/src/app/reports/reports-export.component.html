@@ -1,0 +1,31 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">匯出管理</h1>
+      <p class="page__description">
+        管理報表匯出模板與排程，將關鍵指標定期寄送給相關團隊，加速決策速度。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">建立匯出模板</button>
+      <button class="button button--ghost" type="button">同步到雲端硬碟</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">已設定的匯出模板</h2>
+    <div class="data-grid">
+      <article class="data-grid__item" *ngFor="let template of templates">
+        <h3 class="data-grid__title">{{ template.name }}</h3>
+        <p class="data-grid__text">{{ template.description }}</p>
+        <div>
+          <p class="data-grid__text"><strong>欄位</strong></p>
+          <ul>
+            <li *ngFor="let field of template.fields">{{ field }}</li>
+          </ul>
+        </div>
+        <p class="data-grid__text"><strong>排程：</strong>{{ template.schedule }}</p>
+      </article>
+    </div>
+  </section>
+</section>

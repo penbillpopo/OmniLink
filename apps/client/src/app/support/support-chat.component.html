@@ -1,0 +1,43 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">聊天室</h1>
+      <p class="page__description">
+        即時查看客服與會員的對話狀況，監控等待時間與滿意度，支援轉接與檢視紀錄。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--ghost" type="button">排班設定</button>
+      <button class="button button--primary" type="button">開啟新對話</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">線上對話</h2>
+    <div class="data-grid">
+      <article class="data-grid__item" *ngFor="let session of sessions">
+        <h3 class="data-grid__title">{{ session.member }}</h3>
+        <p class="data-grid__text">主題：{{ session.topic }}</p>
+        <p class="data-grid__text">客服：{{ session.agent }}</p>
+        <p class="data-grid__text">開始時間：{{ session.startedAt }}</p>
+        <p class="data-grid__text">最新訊息：{{ session.lastMessage }}</p>
+        <span
+          class="badge"
+          [ngClass]="{
+            'badge--success': session.status === 'closed',
+            'badge--warning': session.status === 'waiting',
+            'badge--danger': session.status === 'active'
+          }"
+        >
+          {{
+            session.status === 'closed'
+              ? '已結束'
+              : session.status === 'waiting'
+              ? '待回覆'
+              : '進行中'
+          }}
+        </span>
+      </article>
+    </div>
+  </section>
+</section>

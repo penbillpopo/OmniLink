@@ -1,0 +1,208 @@
+<aside class="cs-sidebar">
+  <div class="cs-sidebar__brand">
+    <ng-container *ngIf="brand; else customBrand">{{ brand }}</ng-container>
+    <ng-template #customBrand>
+      <ng-content select="[csSidebarBrand]" />
+    </ng-template>
+  </div>
+
+  <nav class="cs-sidebar__nav">
+    <section class="cs-sidebar__section" *ngFor="let section of sections; let sectionIndex = index">
+      <h3 class="cs-sidebar__section-title" *ngIf="section.label">{{ section.label }}</h3>
+
+      <ul class="cs-sidebar__items">
+        <li class="cs-sidebar__item" *ngFor="let item of section.items; let itemIndex = index">
+          <ng-container *ngIf="!(item.children?.length); else hasChildren">
+            <a
+              *ngIf="item.route; else externalOrAction"
+              class="cs-sidebar__link"
+              [routerLink]="item.route"
+              (click)="handleClick($event, item)"
+            >
+              <span *ngIf="item.icon as icon" class="cs-sidebar__icon" aria-hidden="true">
+                <ng-container
+                  [ngTemplateOutlet]="iconTemplate"
+                  [ngTemplateOutletContext]="{ $implicit: icon }"
+                ></ng-container>
+              </span>
+              <span>{{ item.label }}</span>
+            </a>
+
+            <ng-template #externalOrAction>
+              <a
+                *ngIf="item.externalUrl; else emitOnly"
+                class="cs-sidebar__link"
+                [href]="item.externalUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                (click)="handleClick($event, item)"
+              >
+                <span *ngIf="item.icon as icon" class="cs-sidebar__icon" aria-hidden="true">
+                  <ng-container
+                    [ngTemplateOutlet]="iconTemplate"
+                    [ngTemplateOutletContext]="{ $implicit: icon }"
+                  ></ng-container>
+                </span>
+                <span>{{ item.label }}</span>
+              </a>
+
+              <ng-template #emitOnly>
+                <button
+                  class="cs-sidebar__link cs-sidebar__link--action"
+                  type="button"
+                  (click)="handleClick($event, item)"
+                >
+                  <span *ngIf="item.icon as icon" class="cs-sidebar__icon" aria-hidden="true">
+                    <ng-container
+                      [ngTemplateOutlet]="iconTemplate"
+                      [ngTemplateOutletContext]="{ $implicit: icon }"
+                    ></ng-container>
+                  </span>
+                  <span>{{ item.label }}</span>
+                </button>
+              </ng-template>
+            </ng-template>
+          </ng-container>
+
+          <ng-template #hasChildren>
+            <button
+              type="button"
+              class="cs-sidebar__group-header"
+              (click)="toggleGroup(sectionIndex, itemIndex, item)"
+              [attr.aria-expanded]="isGroupExpanded(sectionIndex, itemIndex, item)"
+            >
+              <span *ngIf="item.icon as icon" class="cs-sidebar__icon" aria-hidden="true">
+                <ng-container
+                  [ngTemplateOutlet]="iconTemplate"
+                  [ngTemplateOutletContext]="{ $implicit: icon }"
+                ></ng-container>
+              </span>
+              <span class="cs-sidebar__group-label">{{ item.label }}</span>
+              <span class="cs-sidebar__chevron" aria-hidden="true">
+                <ng-container
+                  [ngTemplateOutlet]="iconTemplate"
+                  [ngTemplateOutletContext]="{
+                    $implicit: isGroupExpanded(sectionIndex, itemIndex, item)
+                      ? 'fa-chevron-up'
+                      : 'fa-chevron-down'
+                  }"
+                ></ng-container>
+              </span>
+            </button>
+
+            <ul
+              class="cs-sidebar__subitems"
+              *ngIf="isGroupExpanded(sectionIndex, itemIndex, item)"
+            >
+              <li class="cs-sidebar__subitem" *ngFor="let child of item.children">
+                <a
+                  *ngIf="child.route; else childEmitOnly"
+                  class="cs-sidebar__sublink"
+                  [routerLink]="child.route"
+                  (click)="handleClick($event, child)"
+                >
+                  <span>{{ child.label }}</span>
+                </a>
+
+                <ng-template #childEmitOnly>
+                  <button
+                    class="cs-sidebar__sublink cs-sidebar__sublink--action"
+                    type="button"
+                    (click)="handleClick($event, child)"
+                  >
+                    <span>{{ child.label }}</span>
+                  </button>
+                </ng-template>
+              </li>
+            </ul>
+          </ng-template>
+        </li>
+      </ul>
+    </section>
+  </nav>
+
+  <div class="cs-sidebar__footer">
+    <ng-content select="[csSidebarFooter]" />
+  </div>
+</aside>
+
+<ng-template #iconTemplate let-name>
+  <ng-container [ngSwitch]="name">
+    <svg *ngSwitchCase="'fa-chart-simple'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <rect x="3" y="10" width="3.5" height="11" rx="1.4"></rect>
+      <rect x="9.5" y="6" width="3.5" height="15" rx="1.4"></rect>
+      <rect x="16" y="13" width="3.5" height="8" rx="1.4"></rect>
+    </svg>
+    <svg *ngSwitchCase="'fa-users'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <circle cx="8" cy="9" r="3.2"></circle>
+      <circle cx="16.5" cy="10" r="2.8"></circle>
+      <path d="M4.2 19c0-2.4 2.3-4.4 5.3-4.4s5.3 2 5.3 4.4"></path>
+      <path d="M14.7 18.8c0-1.8 1.7-3.2 3.8-3.2 0.7 0 1.3 0.1 1.9 0.4"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-box-open'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <path d="M4 8.5 12 4l8 4.5-8 4.5-8-4.5Z"></path>
+      <path d="M4 8.5v7l8 4.5 8-4.5v-7"></path>
+      <path d="M12 13v7.3"></path>
+      <path d="M12 8.8 18.5 5"></path>
+      <path d="M12 8.8 5.5 5"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-receipt'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <path d="M6 3h12v18l-3-1.6-3 1.6-3-1.6-3 1.6z"></path>
+      <path d="M8.5 8h7"></path>
+      <path d="M8.5 12h7"></path>
+      <path d="M8.5 16h5"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-bullhorn'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <path d="M4 11V7l10-3v16l-4-1.2v-4.3"></path>
+      <path d="M20 8.5c0 3.3-1.7 6-6 6.5"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-chart-line'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M4 19h16"></path>
+      <path d="M6 15l4-5 3.2 3.5L19 7"></path>
+      <circle cx="6" cy="15" r="0.9" fill="currentColor"></circle>
+      <circle cx="10" cy="10" r="0.9" fill="currentColor"></circle>
+      <circle cx="13.2" cy="13.5" r="0.9" fill="currentColor"></circle>
+      <circle cx="19" cy="7" r="0.9" fill="currentColor"></circle>
+    </svg>
+    <svg *ngSwitchCase="'fa-gear'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M12 5.5v-2"></path>
+      <path d="M12 20.5v-2"></path>
+      <path d="m17 7 1.4-1.4"></path>
+      <path d="m5.6 18.4 1.4-1.4"></path>
+      <path d="m6 7-1.4-1.4"></path>
+      <path d="m18.4 18.4-1.4-1.4"></path>
+      <path d="M5.5 12h-2"></path>
+      <path d="M20.5 12h-2"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-shield'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <path d="M12 3 5 6v6c0 4.3 2.9 7.6 7 9 4.1-1.4 7-4.7 7-9V6Z"></path>
+      <path d="M9 12l2.2 2.2L15 10"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-code'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M9 8 5 12l4 4"></path>
+      <path d="M15 8l4 4-4 4"></path>
+      <path d="m13 5-2 14"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-headset'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <path d="M6 18h-1a2 2 0 0 1-2-2v-2a9 9 0 1 1 18 0v2a2 2 0 0 1-2 2h-1"></path>
+      <rect x="6" y="12" width="3.5" height="6" rx="1.6"></rect>
+      <rect x="14.5" y="12" width="3.5" height="6" rx="1.6"></rect>
+      <path d="M12 18v1.5a2.5 2.5 0 0 0 2.5 2.5h1"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-right-from-bracket'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <path d="M11 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5"></path>
+      <path d="m16 8 4 4-4 4"></path>
+      <path d="M9 12h11"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-chevron-down'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="m6 9 6 6 6-6"></path>
+    </svg>
+    <svg *ngSwitchCase="'fa-chevron-up'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="m6 15 6-6 6 6"></path>
+    </svg>
+    <svg *ngSwitchDefault viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <circle cx="12" cy="12" r="4"></circle>
+    </svg>
+  </ng-container>
+</ng-template>

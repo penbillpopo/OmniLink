@@ -1,0 +1,55 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">行銷排程</h1>
+      <p class="page__description">
+        規劃跨渠道訊息排程與審核進度，避免撞檔並維持品牌對外訊息一致性。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增排程</button>
+      <button class="button button--ghost" type="button">週視圖</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">近期排程</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>渠道</th>
+          <th>排程時間</th>
+          <th>負責人</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of schedules">
+          <td>{{ item.title }}</td>
+          <td>{{ item.channel }}</td>
+          <td>{{ item.scheduledAt }}</td>
+          <td>{{ item.owner }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': item.status === 'approved',
+                'badge--warning': item.status === 'queued',
+                'badge--danger': item.status === 'draft'
+              }"
+            >
+              {{
+                item.status === 'approved'
+                  ? '已核准'
+                  : item.status === 'queued'
+                  ? '排程中'
+                  : '草稿'
+              }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

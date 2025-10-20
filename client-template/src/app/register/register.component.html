@@ -1,0 +1,60 @@
+<section class="register-page">
+  <div class="register-card">
+    <header class="register-card__header">
+      <h1 class="register-card__title">Create your account</h1>
+      <p class="register-card__subtitle">Join Trevia to plan smarter journeys and collaborate with your team.</p>
+    </header>
+
+    <cs-form class="register-form" [formGroup]="registerForm" (submitted)="submit()">
+      <cs-input
+        formControlName="email"
+        type="email"
+        label="Email"
+        placeholder="you@example.com"
+        [required]="true"
+        [errors]="emailErrors"
+      ></cs-input>
+
+      <cs-input
+        formControlName="password"
+        type="password"
+        label="Password"
+        placeholder="At least 8 characters"
+        [required]="true"
+        [errors]="passwordErrors"
+      ></cs-input>
+
+      <cs-input
+        formControlName="confirmPassword"
+        type="password"
+        label="Confirm password"
+        placeholder="Re-enter your password"
+        [required]="true"
+        [errors]="confirmPasswordErrors"
+      ></cs-input>
+
+      <cs-checkbox formControlName="agreeToTerms" label="I agree to the">
+        <a class="register-form__terms-link" href="/terms" target="_blank" rel="noopener noreferrer">
+          Terms and Privacy Policy
+        </a>
+      </cs-checkbox>
+
+      <cs-button
+        type="submit"
+        variant="primary"
+        [fullWidth]="true"
+        [disabled]="registerForm.invalid || isSubmitting()"
+        [loading]="isSubmitting()"
+      >
+        Create account
+      </cs-button>
+
+      <p class="register-form__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+    </cs-form>
+
+    <footer class="register-card__footer">
+      <span>Already have an account?</span>
+      <a routerLink="/login">Log in</a>
+    </footer>
+  </div>
+</section>

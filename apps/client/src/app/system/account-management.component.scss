@@ -1,0 +1,73 @@
+.accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.accounts__header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+}
+
+.accounts__header p {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.accounts__table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+}
+
+.accounts__table thead {
+  background: #f8fafc;
+  text-align: left;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.accounts__table th,
+.accounts__table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.accounts__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.accounts__tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.accounts__tag--success {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.accounts__tag--warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
+@media (max-width: 768px) {
+  .accounts {
+    padding: 1.5rem;
+  }
+
+  .accounts__table {
+    font-size: 0.9rem;
+  }
+}

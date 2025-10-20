@@ -1,0 +1,46 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">會員報表</h1>
+      <p class="page__description">
+        分析會員分級、活躍度與回購行為，協助制定會員成長策略與關懷計畫。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">匯出報表</button>
+      <button class="button button--ghost" type="button">下載 RFM 分析</button>
+    </div>
+  </header>
+
+  <div class="stat-grid">
+    <article class="stat-card" *ngFor="let metric of metrics">
+      <h2 class="stat-card__title">{{ metric.title }}</h2>
+      <p class="stat-card__value">{{ metric.value }}</p>
+      <span class="stat-card__hint">{{ metric.hint }}</span>
+    </article>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel__title">會員等級占比</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>會員群組</th>
+          <th>人數</th>
+          <th>占比</th>
+          <th>趨勢</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let segment of segments">
+          <td>{{ segment.segment }}</td>
+          <td>{{ segment.members | number }}</td>
+          <td>{{ segment.share | percent: '1.1-1' }}</td>
+          <td [ngClass]="{ 'positive': segment.trend >= 0, 'negative': segment.trend < 0 }">
+            {{ segment.trend | percent: '1.1-1' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

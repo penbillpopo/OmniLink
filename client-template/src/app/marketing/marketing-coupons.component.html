@@ -1,0 +1,57 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">優惠券管理</h1>
+      <p class="page__description">
+        建立與管理促銷優惠券，支援分眾、使用次數限制與旅遊主題專屬折扣。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">建立優惠券</button>
+      <button class="button button--ghost" type="button">匯出成效報告</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">優惠券列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>代碼</th>
+          <th>名稱</th>
+          <th>折扣</th>
+          <th>使用情況</th>
+          <th>有效期間</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let coupon of coupons">
+          <td>{{ coupon.code }}</td>
+          <td>{{ coupon.name }}</td>
+          <td>{{ coupon.value }}</td>
+          <td>{{ coupon.usage }}</td>
+          <td>{{ coupon.validRange }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': coupon.status === 'active',
+                'badge--warning': coupon.status === 'scheduled',
+                'badge--danger': coupon.status === 'expired'
+              }"
+            >
+              {{
+                coupon.status === 'active'
+                  ? '進行中'
+                  : coupon.status === 'scheduled'
+                  ? '排程'
+                  : '已結束'
+              }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

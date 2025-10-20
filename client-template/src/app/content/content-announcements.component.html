@@ -1,0 +1,55 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">公告管理</h1>
+      <p class="page__description">
+        發佈平台維護、活動與權益更新訊息，支援分眾與排程上線，確保會員即時掌握重要公告。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">建立公告</button>
+      <button class="button button--ghost" type="button">公告排程</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">公告列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>標題</th>
+          <th>對象</th>
+          <th>狀態</th>
+          <th>發佈時間</th>
+          <th>訊息摘要</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let announcement of announcements">
+          <td>{{ announcement.title }}</td>
+          <td>{{ announcement.target }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': announcement.status === 'active',
+                'badge--warning': announcement.status === 'scheduled',
+                'badge--danger': announcement.status === 'expired'
+              }"
+            >
+              {{
+                announcement.status === 'active'
+                  ? '進行中'
+                  : announcement.status === 'scheduled'
+                  ? '已排程'
+                  : '已結束'
+              }}
+            </span>
+          </td>
+          <td>{{ announcement.publishedAt }}</td>
+          <td>{{ announcement.message }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

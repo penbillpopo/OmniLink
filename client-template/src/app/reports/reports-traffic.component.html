@@ -1,0 +1,58 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">流量來源分析</h1>
+      <p class="page__description">
+        監控各流量來源的訪客行為與轉換成效，找出最具成效的投放與內容策略。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--ghost" type="button">整合 GA 報表</button>
+      <button class="button button--primary" type="button">下載流量報告</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">來源概況</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>來源</th>
+          <th>Sessions</th>
+          <th>占比</th>
+          <th>轉換率</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let source of sources">
+          <td>{{ source.source }}</td>
+          <td>{{ source.sessions | number }}</td>
+          <td>{{ source.share | percent: '1.1-1' }}</td>
+          <td>{{ source.conversion | percent: '1.1-1' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">熱門著陸頁</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>頁面</th>
+          <th>Sessions</th>
+          <th>跳出率</th>
+          <th>轉換率</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let page of landingPages">
+          <td>{{ page.page }}</td>
+          <td>{{ page.sessions | number }}</td>
+          <td>{{ page.bounceRate | percent: '1.1-1' }}</td>
+          <td>{{ page.conversion | percent: '1.1-1' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

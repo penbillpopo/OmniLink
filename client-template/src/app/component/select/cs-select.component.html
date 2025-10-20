@@ -1,0 +1,34 @@
+<cs-form-field
+  [label]="label"
+  [required]="required"
+  [hint]="hint"
+  [error]="errorMessage"
+  [disabled]="disabled"
+>
+  <select
+    class="cs-select"
+    [attr.id]="controlId"
+    [attr.name]="name"
+    [disabled]="disabled"
+    [value]="value ?? ''"
+    (change)="handleChange($any($event.target).value)"
+    (blur)="handleBlur()"
+  >
+    <option
+      *ngIf="placeholder"
+      value=""
+      disabled
+      hidden
+      [selected]="(value ?? '') === ''"
+    >
+      {{ placeholder }}
+    </option>
+    <option
+      *ngFor="let option of options"
+      [value]="option.value"
+      [disabled]="option.disabled"
+    >
+      {{ option.label }}
+    </option>
+  </select>
+</cs-form-field>

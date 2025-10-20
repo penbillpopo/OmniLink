@@ -1,0 +1,79 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">訂單列表</h1>
+      <p class="page__description">
+        查看訂單流程與付款狀態，快速處理客服需求或補件，掌握即時業績動態。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--ghost" type="button">匯出訂單報表</button>
+      <button class="button button--primary" type="button">建立手動訂單</button>
+    </div>
+  </header>
+
+  <div class="stat-grid">
+    <article class="stat-card">
+      <h2 class="stat-card__title">本月訂單金額</h2>
+      <p class="stat-card__value">NT$ 32,580,000</p>
+      <span class="stat-card__hint">較上月成長 12.4%</span>
+    </article>
+    <article class="stat-card">
+      <h2 class="stat-card__title">待付款訂單</h2>
+      <p class="stat-card__value">48</p>
+      <span class="stat-card__hint">將於 48 小時內發送提醒</span>
+    </article>
+    <article class="stat-card">
+      <h2 class="stat-card__title">進行中審核</h2>
+      <p class="stat-card__value">19</p>
+      <span class="stat-card__hint">缺少護照資料 / 付款證明</span>
+    </article>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel__title">訂單列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>訂單編號</th>
+          <th>會員</th>
+          <th>行程</th>
+          <th>出發日期</th>
+          <th>金額</th>
+          <th>狀態</th>
+          <th>建立時間</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders">
+          <td>{{ order.orderNo }}</td>
+          <td>{{ order.member }}</td>
+          <td>{{ order.itinerary }}</td>
+          <td>{{ order.departDate }}</td>
+          <td>{{ order.amount | currency: 'TWD':'symbol-narrow':'1.0-0' }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': order.status === 'paid',
+                'badge--warning': order.status === 'processing' || order.status === 'pending',
+                'badge--danger': order.status === 'cancelled'
+              }"
+            >
+              {{
+                order.status === 'paid'
+                  ? '已付款'
+                  : order.status === 'processing'
+                  ? '審核中'
+                  : order.status === 'pending'
+                  ? '待付款'
+                  : '已取消'
+              }}
+            </span>
+          </td>
+          <td>{{ order.createdAt }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

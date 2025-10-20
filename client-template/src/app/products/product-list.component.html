@@ -1,0 +1,69 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">商品管理</h1>
+      <p class="page__description">
+        管理旅遊商品與行程內容，掌握庫存、上下架狀態與銷售成效。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增商品</button>
+      <button class="button button--ghost" type="button">批次匯入</button>
+    </div>
+  </header>
+
+  <div class="stat-grid">
+    <article class="stat-card" *ngFor="let stat of stats">
+      <h2 class="stat-card__title">{{ stat.title }}</h2>
+      <p class="stat-card__value">{{ stat.value }}</p>
+      <span class="stat-card__hint">{{ stat.hint }}</span>
+    </article>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel__title">商品列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>商品名稱</th>
+          <th>分類</th>
+          <th>售價</th>
+          <th>庫存</th>
+          <th>狀態</th>
+          <th>轉換率</th>
+          <th>最後更新</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of products">
+          <td>{{ product.sku }}</td>
+          <td>{{ product.name }}</td>
+          <td>{{ product.category }}</td>
+          <td>{{ product.price | currency: 'TWD':'symbol-narrow':'1.0-0' }}</td>
+          <td>{{ product.stock }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': product.status === 'published',
+                'badge--warning': product.status === 'draft',
+                'badge--danger': product.status === 'archived'
+              }"
+            >
+              {{
+                product.status === 'published'
+                  ? '上架中'
+                  : product.status === 'draft'
+                  ? '草稿'
+                  : '已下架'
+              }}
+            </span>
+          </td>
+          <td>{{ product.conversion | percent: '1.1-1' }}</td>
+          <td>{{ product.updatedAt }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

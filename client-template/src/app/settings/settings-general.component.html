@@ -1,0 +1,54 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">基本設定</h1>
+      <p class="page__description">
+        調整品牌資訊與訂單預設規則，所有變更將即時套用於前台與通知系統。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--ghost" type="button">還原為預設</button>
+      <button class="button button--primary" type="button">儲存設定</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">品牌資訊</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>設定值</th>
+          <th>說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let info of companyInfo">
+          <td>{{ info.key }}</td>
+          <td>{{ info.value }}</td>
+          <td>{{ info.description }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">訂單規則</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>設定項目</th>
+          <th>預設值</th>
+          <th>備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let setting of bookingSettings">
+          <td>{{ setting.key }}</td>
+          <td>{{ setting.value }}</td>
+          <td>{{ setting.description }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

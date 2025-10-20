@@ -1,0 +1,31 @@
+.placeholder {
+  min-height: calc(100vh - 4rem);
+  padding: 4rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.placeholder__content {
+  max-width: 560px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 3rem 2rem;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.08);
+}
+
+.placeholder__title {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.placeholder__description {
+  margin: 0;
+  font-size: 1rem;
+  color: #475569;
+  line-height: 1.6;
+}

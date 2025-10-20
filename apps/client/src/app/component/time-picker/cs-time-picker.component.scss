@@ -1,0 +1,22 @@
+.cs-time-picker {
+  width: 100%;
+  border-radius: var(--radius-base);
+  border: 1px solid #e2e8f0;
+  padding: 0.85rem 1rem;
+  background-color: #ffffff;
+  font: inherit;
+  color: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cs-time-picker:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.cs-time-picker:disabled {
+  background-color: #f8fafc;
+  cursor: not-allowed;
+  opacity: 0.65;
+}

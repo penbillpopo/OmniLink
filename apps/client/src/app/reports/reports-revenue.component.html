@@ -1,0 +1,76 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">收入報表</h1>
+      <p class="page__description">
+        匯整收入來源與費用結構，評估毛利率與營運效率，用於管理層決策。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">輸出財務報告</button>
+      <button class="button button--ghost" type="button">設定自動寄送</button>
+    </div>
+  </header>
+
+  <div class="stat-grid">
+    <article class="stat-card">
+      <h2 class="stat-card__title">本月總收入</h2>
+      <p class="stat-card__value">NT$ 49,150,000</p>
+      <span class="stat-card__hint">淨利率 18.6%</span>
+    </article>
+    <article class="stat-card">
+      <h2 class="stat-card__title">營收年增率</h2>
+      <p class="stat-card__value">+21%</p>
+      <span class="stat-card__hint">主力來自加購服務成長</span>
+    </article>
+    <article class="stat-card">
+      <h2 class="stat-card__title">固定成本占比</h2>
+      <p class="stat-card__value">38%</p>
+      <span class="stat-card__hint">含人力與平台維運</span>
+    </article>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel__title">收入來源</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>來源</th>
+          <th>金額</th>
+          <th>占比</th>
+          <th>成長率</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of revenueStreams">
+          <td>{{ item.source }}</td>
+          <td>{{ item.amount | currency: 'TWD':'symbol-narrow':'1.0-0' }}</td>
+          <td>{{ item.share | percent: '1.1-1' }}</td>
+          <td [ngClass]="{ 'positive': item.growth >= 0, 'negative': item.growth < 0 }">
+            {{ item.growth | percent: '1.1-1' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">成本結構</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>金額</th>
+          <th>占比</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let expense of expenses">
+          <td>{{ expense.category }}</td>
+          <td>{{ expense.amount | currency: 'TWD':'symbol-narrow':'1.0-0' }}</td>
+          <td>{{ expense.share | percent: '1.1-1' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

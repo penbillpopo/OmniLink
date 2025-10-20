@@ -1,0 +1,75 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">內容管理</h1>
+      <p class="page__description">
+        維護部落格文章、旅遊攻略與品牌故事，搭配 SEO 與推薦機制提升導流與轉換。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">撰寫新文章</button>
+      <button class="button button--ghost" type="button">內容排程</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">文章列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>標題</th>
+          <th>作者</th>
+          <th>分類</th>
+          <th>狀態</th>
+          <th>發佈時間</th>
+          <th>瀏覽數</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let article of articles">
+          <td>{{ article.title }}</td>
+          <td>{{ article.author }}</td>
+          <td>{{ article.category }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': article.status === 'published',
+                'badge--warning': article.status === 'scheduled',
+                'badge--danger': article.status === 'draft'
+              }"
+            >
+              {{
+                article.status === 'published'
+                  ? '已發佈'
+                  : article.status === 'scheduled'
+                  ? '排程中'
+                  : '草稿'
+              }}
+            </span>
+          </td>
+          <td>{{ article.publishedAt }}</td>
+          <td>{{ article.views | number }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">內容靈感池</h2>
+    <div class="kanban">
+      <article class="kanban__card">
+        <strong>國旅深度體驗系列</strong>
+        <p class="kanban__meta">企劃中 · 聚焦小鎮慢旅、文化導覽</p>
+      </article>
+      <article class="kanban__card">
+        <strong>旅人故事專欄</strong>
+        <p class="kanban__meta">邀請 VIP 會員分享真實體驗，製作影音版</p>
+      </article>
+      <article class="kanban__card">
+        <strong>旅遊趨勢白皮書</strong>
+        <p class="kanban__meta">蒐集 2025 自由行與永續旅遊市場資料</p>
+      </article>
+    </div>
+  </section>
+</section>

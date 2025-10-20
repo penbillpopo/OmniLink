@@ -1,0 +1,23 @@
+<div class="cs-toast-container">
+  <article
+    class="cs-toast"
+    *ngFor="let toast of toasts; trackBy: trackToast"
+    [class.cs-toast--success]="toast.variant === 'success'"
+    [class.cs-toast--warning]="toast.variant === 'warning'"
+    [class.cs-toast--error]="toast.variant === 'error'"
+  >
+    <div class="cs-toast__content">
+      <h4 *ngIf="toast.title">{{ toast.title }}</h4>
+      <p>{{ toast.message }}</p>
+    </div>
+    <button
+      type="button"
+      class="cs-toast__dismiss"
+      *ngIf="toast.dismissible !== false"
+      (click)="dismiss(toast.id)"
+      aria-label="Dismiss notification"
+    >
+      ✕
+    </button>
+  </article>
+</div>

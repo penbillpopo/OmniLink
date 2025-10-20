@@ -1,0 +1,26 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">FAQ</h1>
+      <p class="page__description">
+        維護常見問題與解答，協助會員快速找到資訊，也可同步至行銷活動與客服知識庫。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增問題</button>
+      <button class="button button--ghost" type="button">匯出知識庫</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">常見問題列表</h2>
+    <div class="data-grid">
+      <article class="data-grid__item" *ngFor="let faq of faqs">
+        <h3 class="data-grid__title">{{ faq.category }}</h3>
+        <p class="data-grid__text"><strong>問題：</strong>{{ faq.question }}</p>
+        <p class="data-grid__text"><strong>答覆：</strong>{{ faq.answer }}</p>
+        <p class="data-grid__text">更新日期：{{ faq.updatedAt }}</p>
+      </article>
+    </div>
+  </section>
+</section>

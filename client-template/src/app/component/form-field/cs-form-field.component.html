@@ -1,0 +1,13 @@
+<label class="cs-form-field" [class.cs-form-field--disabled]="disabled">
+  <div class="cs-form-field__label" *ngIf="label">
+    <span>{{ label }}</span>
+    <span class="cs-form-field__required" *ngIf="required">*</span>
+  </div>
+
+  <div class="cs-form-field__control">
+    <ng-content />
+  </div>
+
+  <small class="cs-form-field__error" *ngIf="error">{{ error }}</small>
+  <small class="cs-form-field__hint" *ngIf="hint && !error">{{ hint }}</small>
+</label>

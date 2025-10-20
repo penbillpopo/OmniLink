@@ -1,0 +1,99 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">會員等級 / 標籤</h1>
+      <p class="page__description">
+        規劃不同等級的權益與升等條件，並可定義客製標籤協助行銷分眾。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增會員標籤</button>
+      <button class="button button--ghost" type="button">下載權益說明</button>
+    </div>
+  </header>
+
+  <div class="stat-grid">
+    <article class="stat-card">
+      <h2 class="stat-card__title">總會員標籤</h2>
+      <p class="stat-card__value">38</p>
+      <span class="stat-card__hint">常用標籤：高價值、潛在流失、國旅愛好者</span>
+    </article>
+    <article class="stat-card">
+      <h2 class="stat-card__title">升等成功率</h2>
+      <p class="stat-card__value">72%</p>
+      <span class="stat-card__hint">近 90 天推升 462 位會員升至白金</span>
+    </article>
+    <article class="stat-card">
+      <h2 class="stat-card__title">標籤自動化</h2>
+      <p class="stat-card__value">15 組</p>
+      <span class="stat-card__hint">週期性評估 RFM、登入活躍度等條件</span>
+    </article>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel__title">等級權益設定</h2>
+    <div class="data-grid">
+      <article class="data-grid__item" *ngFor="let tier of tiers">
+        <h3 class="data-grid__title">{{ tier.name }}</h3>
+        <p class="data-grid__text"><strong>升等條件：</strong>{{ tier.requirement }}</p>
+        <div>
+          <p class="data-grid__text"><strong>主要權益</strong></p>
+          <ul>
+            <li *ngFor="let benefit of tier.benefits">{{ benefit }}</li>
+          </ul>
+        </div>
+        <div>
+          <p class="data-grid__text"><strong>專屬禮遇</strong></p>
+          <ul>
+            <li *ngFor="let perk of tier.perks">{{ perk }}</li>
+          </ul>
+        </div>
+        <p class="data-grid__text"><strong>續會條件：</strong>{{ tier.renewal }}</p>
+        <div class="tag-list">
+          <span class="tag-list__item">積分權益</span>
+          <span class="tag-list__item">升等通知</span>
+          <span class="tag-list__item">自動檢查</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">常見標籤</h2>
+    <div class="kanban">
+      <div class="kanban__column">
+        <h3 class="kanban__title">行為標籤</h3>
+        <div class="kanban__card">
+          <strong>高轉換潛在客</strong>
+          <p class="kanban__meta">30 天內開啟 Email 3 次以上 + 點擊率 25%</p>
+        </div>
+        <div class="kanban__card">
+          <strong>旅人回流期</strong>
+          <p class="kanban__meta">上次訂單距今 91-150 天，積極推回購活動</p>
+        </div>
+      </div>
+      <div class="kanban__column">
+        <h3 class="kanban__title">價值標籤</h3>
+        <div class="kanban__card">
+          <strong>高客單價</strong>
+          <p class="kanban__meta">平均客單 > NT$8,000，近 3 期持平或提升</p>
+        </div>
+        <div class="kanban__card">
+          <strong>即將升等</strong>
+          <p class="kanban__meta">距離白金尚差 8,000 消費，推送升等任務</p>
+        </div>
+      </div>
+      <div class="kanban__column">
+        <h3 class="kanban__title">維繫標籤</h3>
+        <div class="kanban__card">
+          <strong>流失預警</strong>
+          <p class="kanban__meta">120 天未登入 + 行銷信件未開啟</p>
+        </div>
+        <div class="kanban__card">
+          <strong>客服關懷</strong>
+          <p class="kanban__meta">近 30 天內有 2 次以上客服紀錄</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>

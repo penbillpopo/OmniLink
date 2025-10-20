@@ -1,0 +1,62 @@
+<section class="login-page">
+  <div class="login-card">
+    <header class="login-card__header">
+      <h1 class="brand">Trevia</h1>
+      <p class="login-card__subtitle">Log in to pick up where you left off.</p>
+    </header>
+
+    <cs-form class="login-form" [formGroup]="loginForm" (submitted)="submit()" autocomplete="off">
+      <cs-input
+        formControlName="email"
+        label="Email"
+        type="email"
+        placeholder="you@example.com"
+        [required]="true"
+        [errors]="emailErrors"
+      ></cs-input>
+
+      <cs-input
+        formControlName="password"
+        label="Password"
+        type="password"
+        placeholder="At least 8 characters"
+        [required]="true"
+        [errors]="passwordErrors"
+      ></cs-input>
+
+      <div class="login-form__meta">
+        <cs-checkbox formControlName="rememberMe" label="Remember me"></cs-checkbox>
+
+        <cs-button
+          type="button"
+          variant="text"
+          (click)="goToForgotPassword()"
+          [disabled]="isSubmitting()"
+        >
+          Forgot password?
+        </cs-button>
+      </div>
+
+      <cs-button
+        type="submit"
+        variant="primary"
+        [fullWidth]="true"
+        [disabled]="loginForm.invalid || isSubmitting()"
+        [loading]="isSubmitting()"
+      >
+        Log in
+      </cs-button>
+
+      <p class="login-form__hint">
+        使用 demo 帳號登入：<strong>demo@trevia.app / Password123</strong>
+      </p>
+
+      <p class="login-form__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+    </cs-form>
+
+    <footer class="login-card__footer">
+      <span>Don't have an account?</span>
+      <a routerLink="/register">Create one</a>
+    </footer>
+  </div>
+</section>

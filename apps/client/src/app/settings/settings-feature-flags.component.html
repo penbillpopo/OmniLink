@@ -1,0 +1,53 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">功能開關</h1>
+      <p class="page__description">
+        控制新功能的逐步釋出與 A/B 測試對象，支援灰度上線與快速回滾。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增功能旗標</button>
+      <button class="button button--ghost" type="button">同步設定檔</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">功能旗標列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>功能名稱</th>
+          <th>描述</th>
+          <th>狀態</th>
+          <th>釋出範圍</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let flag of flags">
+          <td>{{ flag.name }} <span class="flag-key">({{ flag.key }})</span></td>
+          <td>{{ flag.description }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': flag.status === 'enabled',
+                'badge--warning': flag.status === 'beta',
+                'badge--danger': flag.status === 'disabled'
+              }"
+            >
+              {{
+                flag.status === 'enabled'
+                  ? '啟用'
+                  : flag.status === 'beta'
+                  ? '灰度'
+                  : '停用'
+              }}
+            </span>
+          </td>
+          <td>{{ flag.rollout }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

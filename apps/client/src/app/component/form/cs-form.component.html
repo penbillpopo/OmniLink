@@ -1,0 +1,9 @@
+<form
+  class="cs-form"
+  [formGroup]="formGroup"
+  (ngSubmit)="handleSubmit($event)"
+  [attr.novalidate]="novalidate ? '' : null"
+  [attr.autocomplete]="autocomplete"
+>
+  <ng-content />
+</form>

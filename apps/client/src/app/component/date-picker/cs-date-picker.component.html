@@ -1,0 +1,20 @@
+<cs-form-field
+  [label]="label"
+  [required]="required"
+  [hint]="hint"
+  [error]="errorMessage"
+  [disabled]="disabled"
+>
+  <input
+    class="cs-date-picker"
+    type="date"
+    [attr.id]="controlId"
+    [attr.name]="name"
+    [attr.min]="min"
+    [attr.max]="max"
+    [disabled]="disabled"
+    [value]="value ?? ''"
+    (change)="handleChange($any($event.target).value)"
+    (blur)="handleBlur()"
+  />
+</cs-form-field>

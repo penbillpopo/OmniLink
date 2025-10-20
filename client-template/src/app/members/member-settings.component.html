@@ -1,0 +1,84 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">會員設定</h1>
+      <p class="page__description">
+        管理會員通訊偏好、自訂欄位與自動化流程，提供個人化的會員體驗。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">儲存變更</button>
+      <button class="button button--ghost" type="button">重設為預設值</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">通知偏好</h2>
+    <div class="preferences">
+      <article class="preferences__item" *ngFor="let pref of preferences">
+        <div>
+          <h3>{{ pref.label }}</h3>
+          <p>{{ pref.description }}</p>
+        </div>
+        <span
+          class="badge"
+          [ngClass]="{ 'badge--success': pref.enabled, 'badge--warning': !pref.enabled }"
+        >
+          {{ pref.enabled ? '啟用' : '停用' }}
+        </span>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">自訂欄位</h2>
+    <div class="data-grid">
+      <article class="data-grid__item">
+        <h3 class="data-grid__title">旅遊偏好</h3>
+        <p class="data-grid__text">紀錄會員偏好國家、旅遊主題與旅伴類型。</p>
+        <div class="tag-list">
+          <span class="tag-list__item">問卷填寫</span>
+          <span class="tag-list__item">客服補充</span>
+        </div>
+      </article>
+      <article class="data-grid__item">
+        <h3 class="data-grid__title">護照到期日</h3>
+        <p class="data-grid__text">系統自動提醒護照即將到期的會員更新資料。</p>
+        <div class="tag-list">
+          <span class="tag-list__item">自動提醒</span>
+          <span class="tag-list__item">高風險旅遊</span>
+        </div>
+      </article>
+      <article class="data-grid__item">
+        <h3 class="data-grid__title">常用付款方式</h3>
+        <p class="data-grid__text">記錄主要信用卡/付款管道，強化結帳轉換率。</p>
+        <div class="tag-list">
+          <span class="tag-list__item">加密儲存</span>
+          <span class="tag-list__item">快速結帳</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">自動化流程</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>流程名稱</th>
+          <th>觸發條件</th>
+          <th>動作</th>
+          <th>套用對象</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let automation of automations">
+          <td>{{ automation.name }}</td>
+          <td>{{ automation.trigger }}</td>
+          <td>{{ automation.action }}</td>
+          <td>{{ automation.appliedTo }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

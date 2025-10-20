@@ -1,0 +1,77 @@
+.cs-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cs-radio-group legend {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--color-text);
+}
+
+.cs-radio-group--horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cs-radio-group__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  min-width: 0;
+}
+
+.cs-radio-group__option--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cs-radio-group__native {
+  display: none;
+}
+
+.cs-radio-group__control {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background-color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  position: relative;
+}
+
+.cs-radio-group__native:checked + .cs-radio-group__control::after {
+  content: '';
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background-color: var(--color-accent);
+}
+
+.cs-radio-group__native:focus-visible + .cs-radio-group__control {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.cs-radio-group__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.cs-radio-group__label small {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}

@@ -1,0 +1,12 @@
+<button
+  class="cs-icon-button"
+  [class.cs-icon-button--solid]="variant === 'solid'"
+  [class.cs-icon-button--danger]="variant === 'danger'"
+  [attr.type]="type"
+  [attr.aria-label]="ariaLabel"
+  [disabled]="disabled"
+>
+  <span class="cs-icon-button__icon">
+    <ng-content />
+  </span>
+</button>

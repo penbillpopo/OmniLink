@@ -1,0 +1,57 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">郵件與通知模板</h1>
+      <p class="page__description">
+        管理各渠道的通知範本與變數，確保資訊一致且支援多語系與客製化內容。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增模板</button>
+      <button class="button button--ghost" type="button">變數對照表</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">模板列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>名稱</th>
+          <th>渠道</th>
+          <th>用途</th>
+          <th>最後更新</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let template of templates">
+          <td>{{ template.name }}</td>
+          <td>{{ template.channel }}</td>
+          <td>{{ template.usage }}</td>
+          <td>{{ template.lastEdited }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{ 'badge--success': template.status === 'published', 'badge--warning': template.status === 'draft' }"
+            >
+              {{ template.status === 'published' ? '使用中' : '草稿' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">可用變數</h2>
+    <div class="data-grid">
+      <article class="data-grid__item" *ngFor="let group of variables">
+        <h3 class="data-grid__title">{{ group.title }}</h3>
+        <div class="tag-list">
+          <span class="tag-list__item" *ngFor="let variable of group.variables">{{ variable }}</span>
+        </div>
+      </article>
+    </div>
+  </section>
+</section>

@@ -1,0 +1,59 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">發票紀錄</h1>
+      <p class="page__description">
+        管理電子與紙本發票的開立狀態，掌握作廢與重開流程，確保帳務合規。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--ghost" type="button">下載月結報表</button>
+      <button class="button button--primary" type="button">批次開立</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">發票列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>發票號碼</th>
+          <th>訂單編號</th>
+          <th>會員</th>
+          <th>發票類型</th>
+          <th>狀態</th>
+          <th>開立日期</th>
+          <th>金額</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let invoice of invoices">
+          <td>{{ invoice.invoiceNo }}</td>
+          <td>{{ invoice.orderNo }}</td>
+          <td>{{ invoice.member }}</td>
+          <td>{{ invoice.type }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': invoice.status === 'issued',
+                'badge--danger': invoice.status === 'voided',
+                'badge--warning': invoice.status === 'pending'
+              }"
+            >
+              {{
+                invoice.status === 'issued'
+                  ? '已開立'
+                  : invoice.status === 'voided'
+                  ? '已作廢'
+                  : '待開立'
+              }}
+            </span>
+          </td>
+          <td>{{ invoice.issueDate }}</td>
+          <td>NT$ {{ invoice.amount | number }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

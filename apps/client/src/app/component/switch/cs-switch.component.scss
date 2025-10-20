@@ -1,0 +1,63 @@
+.cs-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cs-switch__native {
+  display: none;
+}
+
+.cs-switch__track {
+  width: 2.5rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  background-color: #e2e8f0;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.cs-switch__thumb {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.cs-switch__native:checked + .cs-switch__track {
+  background-color: var(--color-accent);
+}
+
+.cs-switch__native:checked + .cs-switch__track .cs-switch__thumb {
+  transform: translateX(1.1rem);
+}
+
+.cs-switch__native:focus-visible + .cs-switch__track {
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.cs-switch__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.cs-switch__label small {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.cs-switch__native:disabled + .cs-switch__track,
+.cs-switch__native:disabled ~ .cs-switch__label {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

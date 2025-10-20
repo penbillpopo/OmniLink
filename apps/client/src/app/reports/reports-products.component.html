@@ -1,0 +1,44 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">商品報表</h1>
+      <p class="page__description">
+        了解商品曝光、加購與轉換表現，評估內容優化與促銷策略的成效。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--ghost" type="button">下載分析</button>
+      <button class="button button--primary" type="button">匯出 CSV</button>
+    </div>
+  </header>
+
+  <div class="stat-grid">
+    <article class="stat-card" *ngFor="let metric of metrics">
+      <h2 class="stat-card__title">{{ metric.title }}</h2>
+      <p class="stat-card__value">{{ metric.value }}</p>
+      <span class="stat-card__hint">{{ metric.hint }}</span>
+    </article>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel__title">熱門商品轉換率</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>商品</th>
+          <th>頁面瀏覽</th>
+          <th>加入購物車</th>
+          <th>轉換率</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of conversions">
+          <td>{{ item.product }}</td>
+          <td>{{ item.view | number }}</td>
+          <td>{{ item.cart | number }}</td>
+          <td>{{ item.conversion | percent: '1.1-1' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

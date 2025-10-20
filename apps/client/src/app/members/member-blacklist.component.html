@@ -1,0 +1,83 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">黑名單管理</h1>
+      <p class="page__description">
+        維護平台使用安全，紀錄所有被暫停或停權的會員並附上詳細說明，方便追蹤復權流程。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增黑名單</button>
+      <button class="button button--ghost" type="button">匯出報表</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">黑名單紀錄</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>會員編號</th>
+          <th>姓名 / Email</th>
+          <th>原因摘要</th>
+          <th>建立人員</th>
+          <th>建立時間</th>
+          <th>狀態</th>
+          <th>備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let record of records">
+          <td>{{ record.id }}</td>
+          <td>
+            <div class="cell__name">{{ record.name }}</div>
+            <div class="cell__email">{{ record.email }}</div>
+          </td>
+          <td>{{ record.reason }}</td>
+          <td>{{ record.addedBy }}</td>
+          <td>{{ record.addedAt }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--danger': record.status === 'permanent',
+                'badge--warning': record.status === 'temporary'
+              }"
+            >
+              {{ record.status === 'permanent' ? '永久停權' : '暫停中' }}
+            </span>
+            <div class="cell__note" *ngIf="record.releaseAt">預計解除：{{ record.releaseAt }}</div>
+          </td>
+          <td>{{ record.note }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">審核流程</h2>
+    <div class="timeline">
+      <div class="timeline__item">
+        <div class="timeline__dot"></div>
+        <div class="timeline__content">
+          <h3 class="timeline__title">客服建立黑名單請求</h3>
+          <p class="timeline__meta">填寫完整證明資料與客服紀錄，提交給主管審核</p>
+        </div>
+      </div>
+      <div class="timeline__item">
+        <div class="timeline__dot"></div>
+        <div class="timeline__content">
+          <h3 class="timeline__title">主管審核與分類</h3>
+          <p class="timeline__meta">判定是否永久停權、暫停或列入觀察名單，並執行關聯訂單處理</p>
+        </div>
+      </div>
+      <div class="timeline__item">
+        <div class="timeline__dot"></div>
+        <div class="timeline__content">
+          <h3 class="timeline__title">每日監控與回報</h3>
+          <p class="timeline__meta">由系統每日彙整重複嘗試註冊、異常登入與特殊異動</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>

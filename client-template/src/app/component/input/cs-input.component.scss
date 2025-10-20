@@ -1,0 +1,69 @@
+.cs-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.cs-input__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.cs-input__label {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cs-input__required {
+  color: #ef4444;
+  font-size: 0.85em;
+}
+
+.cs-input__control {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-base);
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cs-input__control:focus-within {
+  border-color: var(--color-accent);
+  box-shadow:
+    inset 0 1px 0 rgba(148, 163, 184, 0.05),
+    0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.cs-input__control--invalid {
+  border-color: #ef4444;
+  box-shadow:
+    inset 0 1px 0 rgba(239, 68, 68, 0.08),
+    0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.cs-input__native {
+  width: 100%;
+  border: none;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.cs-input__native::placeholder {
+  color: #94a3b8;
+}
+
+.cs-input__support {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #ef4444;
+}
+
+.cs-input__support--muted {
+  color: var(--color-muted);
+}

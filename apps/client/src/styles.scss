@@ -1,5 +1,5 @@
 @use '@angular/material' as mat;
-@use '@angular/cdk' as cdk;
+@use 'styles/reset';
 
 @include mat.all-component-typographies();
 @include mat.core();
@@ -10,9 +10,30 @@
 
 /* You can add global styles to this file, and also import other style files */
 
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #f4f6f9;
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-accent: #2563eb;
+  --radius-base: 12px;
+  --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.08);
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+}
 small { font-size: 14px; }
+
+button {
+  cursor: pointer;
+}
 
 // 將所有的 mat-typography 樣式都設定為 margin: 0
 .mat-body p, .mat-body-2 p, .mat-typography .mat-body p, .mat-typography .mat-body-2 p, .mat-typography p {

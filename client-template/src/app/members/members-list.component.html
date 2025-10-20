@@ -1,0 +1,97 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">會員列表</h1>
+      <p class="page__description">
+        查看所有會員的基本資料、等級與互動狀態，快速掌握需要關懷或推廣的對象。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增會員</button>
+      <button class="button button--ghost" type="button">匯出 Excel</button>
+    </div>
+  </header>
+
+  <div class="stat-grid">
+    <article class="stat-card" *ngFor="let stat of stats">
+      <h2 class="stat-card__title">{{ stat.title }}</h2>
+      <p class="stat-card__value">{{ stat.value }}</p>
+      <span class="stat-card__hint">{{ stat.hint }}</span>
+    </article>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel__title">搜尋與篩選</h2>
+    <form class="filter-bar">
+      <label>
+        關鍵字
+        <input type="search" placeholder="姓名 / Email / 會員編號" />
+      </label>
+      <label>
+        會員等級
+        <select>
+          <option value="">全部</option>
+          <option value="diamond">黑鑽 VIP</option>
+          <option value="platinum">白金</option>
+          <option value="gold">黃金</option>
+          <option value="silver">銀卡</option>
+        </select>
+      </label>
+      <label>
+        活躍狀態
+        <select>
+          <option value="">全部</option>
+          <option value="active">活躍</option>
+          <option value="warning">待關懷</option>
+          <option value="blocked">停權</option>
+        </select>
+      </label>
+      <label>
+        加入期間
+        <input type="date" />
+      </label>
+      <button class="button button--primary" type="button">套用篩選</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">會員資料</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>會員編號</th>
+          <th>姓名</th>
+          <th>Email</th>
+          <th>等級</th>
+          <th>積分</th>
+          <th>最後登入</th>
+          <th>最後消費</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let member of members">
+          <td>{{ member.id }}</td>
+          <td>{{ member.name }}</td>
+          <td>{{ member.email }}</td>
+          <td>{{ member.level }}</td>
+          <td>{{ member.points | number }}</td>
+          <td>{{ member.lastLogin }}</td>
+          <td>{{ member.lastPurchase }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': member.status === 'active',
+                'badge--warning': member.status === 'warning',
+                'badge--danger': member.status === 'blocked'
+              }"
+            >
+              {{ member.status === 'active' ? '正常' : member.status === 'warning' ? '關懷' : '停權' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

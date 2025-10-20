@@ -1,0 +1,13 @@
+<span
+  class="cs-tooltip"
+  [class.cs-tooltip--visible]="visible"
+  [class.cs-tooltip--top]="placement === 'top'"
+  [class.cs-tooltip--bottom]="placement === 'bottom'"
+  [class.cs-tooltip--left]="placement === 'left'"
+  [class.cs-tooltip--right]="placement === 'right'"
+>
+  <span class="cs-tooltip__trigger">
+    <ng-content />
+  </span>
+  <span class="cs-tooltip__bubble" role="tooltip">{{ message }}</span>
+</span>

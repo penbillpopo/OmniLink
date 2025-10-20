@@ -1,0 +1,111 @@
+.cs-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-base);
+  padding: 0.875rem 1.75rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1;
+  border: 1px solid transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease, border-color 0.2s ease;
+  background-color: var(--color-accent);
+  color: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+.cs-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.cs-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.cs-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.cs-button--outline {
+  background: #ffffff;
+  color: var(--color-accent);
+  border-color: rgba(37, 99, 235, 0.2);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.cs-button--outline:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+.cs-button--ghost {
+  background: transparent;
+  color: var(--color-accent);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.cs-button--ghost:hover:not(:disabled) {
+  background-color: rgba(15, 23, 42, 0.04);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.cs-button--danger {
+  background: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+.cs-button--danger:hover:not(:disabled) {
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.cs-button--text {
+  background: transparent;
+  color: var(--color-accent);
+  border-color: transparent;
+  box-shadow: none;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.cs-button--text:hover:not(:disabled) {
+  background: transparent;
+  text-decoration: underline;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.cs-button--full {
+  width: 100%;
+}
+
+.cs-button__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cs-button__spinner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: cs-button-spin 0.6s linear infinite;
+}
+
+.cs-button--loading {
+  cursor: progress;
+}
+
+@keyframes cs-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

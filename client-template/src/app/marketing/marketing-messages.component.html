@@ -1,0 +1,43 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">推播與通知</h1>
+      <p class="page__description">
+        管理 App 推播、Email 與 SMS 通知，支援受眾分群、排程與成效追蹤。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">建立通知</button>
+      <button class="button button--ghost" type="button">查看自動化</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">發送紀錄</h2>
+    <div class="data-grid">
+      <article class="data-grid__item" *ngFor="let item of broadcasts">
+        <h3 class="data-grid__title">{{ item.title }}</h3>
+        <p class="data-grid__text"><strong>渠道：</strong>{{ item.channel }}</p>
+        <p class="data-grid__text"><strong>對象：</strong>{{ item.audience }}</p>
+        <p class="data-grid__text"><strong>發送時間：</strong>{{ item.sendAt }}</p>
+        <p class="data-grid__text"><strong>成效：</strong>{{ item.metrics }}</p>
+        <span
+          class="badge"
+          [ngClass]="{
+            'badge--success': item.status === 'sent',
+            'badge--warning': item.status === 'scheduled',
+            'badge--danger': item.status === 'draft'
+          }"
+        >
+          {{
+            item.status === 'sent'
+              ? '已發送'
+              : item.status === 'scheduled'
+              ? '排程'
+              : '草稿'
+          }}
+        </span>
+      </article>
+    </div>
+  </section>
+</section>

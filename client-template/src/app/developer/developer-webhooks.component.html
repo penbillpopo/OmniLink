@@ -1,0 +1,44 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Webhook 管理</h1>
+      <p class="page__description">
+        管理外部系統接收事件的 Webhook，支援重送與簽章驗證，掌握投遞結果。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增 Webhook</button>
+      <button class="button button--ghost" type="button">投遞歷史</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">Webhook 列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>名稱</th>
+          <th>事件</th>
+          <th>URL</th>
+          <th>Secret</th>
+          <th>最後投遞</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let hook of webhooks">
+          <td>{{ hook.name }}</td>
+          <td>{{ hook.event }}</td>
+          <td>{{ hook.url }}</td>
+          <td>{{ hook.secret }}</td>
+          <td>{{ hook.lastDelivery }}</td>
+          <td>
+            <span class="badge" [ngClass]="{ 'badge--success': hook.status === 'active', 'badge--danger': hook.status === 'failed' }">
+              {{ hook.status === 'active' ? '正常' : '異常' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

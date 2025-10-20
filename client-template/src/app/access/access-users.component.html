@@ -1,0 +1,55 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">管理員帳號</h1>
+      <p class="page__description">
+        管理後台使用者帳號與啟用狀態，包含密碼重設、權限設定與安全審核。
+      </p>
+    </div>
+    <div class="page__actions">
+      <button class="button button--primary" type="button">新增管理員</button>
+      <button class="button button--ghost" type="button">匯出名單</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel__title">帳號列表</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>姓名</th>
+          <th>Email</th>
+          <th>角色</th>
+          <th>最後登入</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let admin of admins">
+          <td>{{ admin.name }}</td>
+          <td>{{ admin.email }}</td>
+          <td>{{ admin.role }}</td>
+          <td>{{ admin.lastLogin }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge--success': admin.status === 'active',
+                'badge--warning': admin.status === 'inactive',
+                'badge--danger': admin.status === 'locked'
+              }"
+            >
+              {{
+                admin.status === 'active'
+                  ? '啟用'
+                  : admin.status === 'inactive'
+                  ? '停用'
+                  : '已鎖定'
+              }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>
