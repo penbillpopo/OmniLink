@@ -1,0 +1,56 @@
+<mat-form-field
+  [color]="color"
+  [class.mat-form-field-invalid]="error"
+  legacyAppearance
+  class="mat-form-field"
+>
+  <mat-label>{{ placeholder }}</mat-label>
+  <input
+    matInput
+    [ngModel]="displayValue"
+    (focus)="type === 'time' ? timePicker.open() : date.open()"
+    [disabled]="disabled"
+  />
+  <button matSuffix mat-icon-button type="button">
+    <mat-icon>{{ type === 'time' ? 'access_time' : 'today' }}</mat-icon>
+  </button>
+  <mat-hint [class.mat-error]="error">{{ hint }}</mat-hint>
+</mat-form-field>
+
+<ng-template #template>
+  <button
+    mat-raised-button
+    [color]="color"
+    (click)="type === 'time' ? timePicker.open() : date.open()"
+    type="button"
+  >
+    {{ buttonText }}
+  </button>
+</ng-template>
+
+<mat-form-field class="hidden" legacyAppearance>
+  <mat-label>{{ placeholder }}</mat-label>
+  <input
+    matInput
+    [max]="max"
+    [min]="min"
+    [ngModel]="value"
+    [matDatepicker]="date"
+    (dateChange)="change($event.value, 'date')"
+  />
+</mat-form-field>
+
+<mat-datepicker
+  #date
+  [color]="color"
+  (closed)="type === 'datetime' ? timePicker.open() : false"
+></mat-datepicker>
+
+<gosu-time-picker
+  #timePicker
+  [(value)]="time"
+  [color]="color"
+  [max]="max"
+  [min]="min"
+  [style.bottom.px]="buttonOnly ? -10 : 16"
+></gosu-time-picker>

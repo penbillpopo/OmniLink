@@ -1,0 +1,26 @@
+:host {
+  width: 100%;
+  display: inline-flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.hidden {
+  pointer-events: none;
+  opacity: 0;
+  position: absolute;
+}
+
+mat-form-field {
+  width: 100%;
+  min-width: 0;
+  ::ng-deep {
+    .mat-mdc-form-field-icon-suffix {
+      align-self: flex-end;
+      margin-bottom: 2px;
+    }
+  }
+  .mat-error {
+    color: #f44336;
+  }
+}

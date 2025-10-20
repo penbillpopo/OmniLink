@@ -1,0 +1,41 @@
+<mat-card>
+  <mat-card-content>
+    <h3 class="title">註冊帳號</h3>
+    <p class="text">創建您的帳號</p>
+    <form [formGroup]="formData">
+      <mat-form-field class="size-full">
+        <mat-label>名稱</mat-label>
+        <input matInput formControlName="name" type="text" required id="name" />
+        <form-error [formGroup]="formData" name="name"></form-error>
+      </mat-form-field>
+      <mat-form-field class="size-full">
+        <mat-label>信箱</mat-label>
+        <input
+          matInput
+          formControlName="account"
+          type="text"
+          required
+          id="account"
+        />
+        <form-error [formGroup]="formData" name="account"></form-error>
+      </mat-form-field>
+      <mat-form-field class="size-full">
+        <mat-label>密碼</mat-label>
+        <input
+          matInput
+          formControlName="password"
+          type="text"
+          required
+          id="password"
+        />
+        <form-error [formGroup]="formData" name="password"></form-error>
+      </mat-form-field>
+      <div class="buttons">
+        <button mat-button (click)="back()">返回</button>
+        <button mat-raised-button color="primary" (click)="submit()">
+          創建帳號
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

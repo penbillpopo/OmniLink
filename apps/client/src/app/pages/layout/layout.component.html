@@ -1,0 +1,41 @@
+<mat-drawer-container>
+  <mat-drawer #drawer mode="over">
+    <nav>
+      <p class="title">Singal Sage</p>
+      <div class="menus">
+        @for(page of pages;track $index){ @if(page?.children?.length > 0){
+        <button
+          class="menu parent"
+          [class.active]="page.active"
+          (click)="menuParentClick(page)"
+        >
+          <p>
+            {{ page.name }}
+          </p>
+          <div class="sub-menus">
+            @for(child of page.children;track $index){
+            <button class="menu" (click)="menuClick(child.path)">
+              <p>
+                {{ child.name }}
+              </p>
+            </button>
+            }
+          </div>
+        </button>
+        }@else{
+        <button class="menu" (click)="menuClick(page.path)">
+          <p>
+            {{ page.name }}
+          </p>
+        </button>
+        } }
+      </div>
+    </nav>
+  </mat-drawer>
+  <mat-drawer-content>
+    <app-nav-bar (menuIconClick)="drawer.toggle()"></app-nav-bar>
+    <div class="container">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

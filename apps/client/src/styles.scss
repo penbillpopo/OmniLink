@@ -1,0 +1,89 @@
+@use '@angular/material' as mat;
+@use '@angular/cdk' as cdk;
+
+@include mat.all-component-typographies();
+@include mat.core();
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+small { font-size: 14px; }
+
+// 將所有的 mat-typography 樣式都設定為 margin: 0
+.mat-body p, .mat-body-2 p, .mat-typography .mat-body p, .mat-typography .mat-body-2 p, .mat-typography p {
+  margin: 0 ;
+}
+.mat-body h6, .mat-body-2 h6, .mat-typography .mat-body h6, .mat-typography .mat-body-2 h6, .mat-typography h6 {
+  margin: 0;
+}
+.mat-body h5, .mat-body-2 h5, .mat-typography .mat-body h5, .mat-typography .mat-body-2 h5, .mat-typography h5 {
+  margin: 0;
+}
+.mat-body h4, .mat-body-2 h4, .mat-typography .mat-body h4, .mat-typography .mat-body-2 h4, .mat-typography h4 {
+  margin: 0;
+}
+.mat-body h3, .mat-body-2 h3, .mat-typography .mat-body h3, .mat-typography .mat-body-2 h3, .mat-typography h3 {
+  margin: 0;
+}
+.mat-body h2, .mat-body-2 h2, .mat-typography .mat-body h2, .mat-typography .mat-body-2 h2, .mat-typography h2 {
+  margin: 0;
+}
+.mat-body h1, .mat-body-2 h1, .mat-typography .mat-body h1, .mat-typography .mat-body-2 h1, .mat-typography h1 {
+  margin: 0;
+}
+
+//dialog
+.mat-dialog-header {
+  width: 100%;
+  padding: 12px 18px;
+  box-sizing: border-box;
+  background-color: #4051b5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+}
+
+.mat-dialog-container {
+  width: 100%;
+  padding: 18px;
+  box-sizing: border-box;
+  
+}
+
+.mat-dialog-footer {
+  width: 100%;
+  padding: 12px 18px;
+  box-sizing: border-box;
+  background-color: #eeeeee;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: #fff;
+  button{
+    margin-left: 5px;
+  }
+}
+
+td{
+  &.connecting{
+    color: #1E90FF;
+  }
+  &.running{
+    color: #32CD32;
+  }
+  &.stopped{
+    color: #FF6347;
+  }
+  &.finished{
+    color: #32CD32;
+  }
+  &.paused{
+    color: #FFD700;
+  }
+}

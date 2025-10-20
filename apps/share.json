@@ -1,0 +1,14 @@
+{
+  "server": {
+    "module": "./server/src/",
+    "dist": "./libs/@ay-gosu/server-shared/",
+    "allowLibs": [
+      "moment",
+      "lodash",
+      "rxjs",
+      "@ay/bot",
+      "@ay-gosu/types",
+      "@ay-gosu/types/*"
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+:host {
+  display: block;
+  position: absolute;
+  left: 0;
+  bottom: 1em;
+  transform: translateY(100%);
+  z-index: 10000;
+}
+
+mat-card {
+  position: relative;
+  z-index: 10000;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 1em 1em 0;
+  animation: slidedown 0.15s;
+  transform-origin: top;
+  mat-form-field {
+    width: 80px;
+    margin: 0 10px;
+    ::ng-deep {
+      .mat-form-field-infix,
+      .button-wrap {
+        min-width: 0;
+      }
+    }
+  }
+}
+
+@keyframes slidedown {
+  0% {
+    transform: scaleY(0);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+.time-picker-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+}
+
+mat-select {
+  text-align: center;
+ 
+}
+
+.hidden {
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0;
+}

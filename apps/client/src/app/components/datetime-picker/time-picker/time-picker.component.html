@@ -1,0 +1,43 @@
+<div #background class="time-picker-bg" [class.hidden]="!isOpened.value"></div>
+<mat-card *ngIf="isOpened.value">
+  <mat-form-field [color]="color">
+    <mat-label>時</mat-label>
+    <mat-select [(ngModel)]="hour">
+      <mat-option
+        *ngFor="let i of numArray(24)"
+        [value]="i"
+        [disabled]="isDisabled(i, 'hour')"
+      >
+        {{ i < 10 ? '0' + i : i }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <span>：</span>
+
+  <mat-form-field [color]="color">
+    <mat-label>分</mat-label>
+    <mat-select [(ngModel)]="minute">
+      <mat-option
+        *ngFor="let i of numArray(60)"
+        [value]="i"
+        [disabled]="isDisabled(i, 'minute')"
+      >
+        {{ i < 10 ? '0' + i : i }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <span>：</span>
+
+  <mat-form-field [color]="color">
+    <mat-label>秒</mat-label>
+    <mat-select [(ngModel)]="second">
+      <mat-option
+        *ngFor="let i of numArray(60)"
+        [value]="i"
+        [disabled]="isDisabled(i, 'second')"
+      >
+        {{ i < 10 ? '0' + i : i }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-card>

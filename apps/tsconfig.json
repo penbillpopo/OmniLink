@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": false,
+    "incremental": true,
+    "module": "commonjs",
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": false,
+    "outDir": "./dist",
+    "removeComments": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strictBindCallApply": false,
+    "strictNullChecks": false,
+    "target": "es2017",
+    "lib": ["es2018", "es2019", "es2020", "dom"],
+    "paths": {
+      "@ay/env": ["./libs/@ay/env/src/"],
+      "@ay/util": ["./libs/@ay/util/src/"],
+      "@ay/file-upload": ["./libs/@ay/file-upload/src/"],
+      "@ay/skipper-restful-fs": ["./libs/@ay/skipper-restful-fs/src/"],
+      "@ay/skipper-azure": ["./libs/@ay/skipper-azure/src/"],
+      "@ay/sequelize-hierarchy": ["./libs/@ay/sequelize-hierarchy/src/"],
+      "@ay/redis": ["./libs/@ay/redis/src/"],
+      "@ay/redis-collection": ["./libs/@ay/redis-collection/src/"],
+      "@ay-nestjs/sequelize-provider": [
+        "./libs/@ay-nestjs/sequelize-provider/src/"
+      ],
+      "@ay-nestjs/redis-provider": ["./libs/@ay-nestjs/redis-provider/src/"],
+      "@ay-gosu/sequelize-models": ["./libs/@ay-gosu/sequelize-models/src/"],
+      "@ay-gosu/server-shared": ["./libs/@ay-gosu/server-shared/src/"],
+      "@ay-gosu/util": ["./libs/@ay-gosu/util/src/"],
+      "@ay-gosu/util/*": ["./libs/@ay-gosu/util/src/*"],
+      "@ay-nestjs/share-server": ["./libs/@ay-nestjs/share-server/src/"],
+      "@ay-nestjs/share-client": ["./libs/@ay-nestjs/share-client/src/"],
+      "@ay-nestjs/share-cli": ["./libs/@ay-nestjs/share-cli/src/"],
+      "@ay-nestjs/file-uploader-provider": [
+        "./libs/@ay-nestjs/file-uploader-provider/src/"],
+      "@ay-nestjs/rabbit-mq": ["libs/@ay-nestjs/rabbit-mq/src/"],
+      "@ay-nestjs/rabbit-mq-provider": [
+        "libs/@ay-nestjs/rabbit-mq-provider/src/"
+      ]
+    }
+  }
+}

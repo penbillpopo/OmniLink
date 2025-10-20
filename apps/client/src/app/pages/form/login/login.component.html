@@ -1,0 +1,43 @@
+<mat-card>
+  <mat-card-content>
+    <h3 class="title">後台編輯</h3>
+    <p class="text">請輸入帳號密碼</p>
+    <form [formGroup]="formData">
+      <mat-form-field class="size-full">
+        <mat-label>帳號(信箱)</mat-label>
+        <input
+          matInput
+          formControlName="account"
+          type="text"
+          required
+          id="account"
+        />
+        <form-error [formGroup]="formData" name="account"></form-error>
+      </mat-form-field>
+      <mat-form-field class="size-full">
+        <mat-label>密碼</mat-label>
+        <input
+          matInput
+          formControlName="password"
+          type="password"
+          required
+          id="password"
+        />
+        <form-error [formGroup]="formData" name="password"></form-error>
+      </mat-form-field>
+      <div class="buttons">
+        <button
+          mat-raised-button
+          type="button"
+          color="accent"
+          routerLink="/form/register"
+        >
+          註冊
+        </button>
+        <button mat-raised-button color="primary" (click)="login()">
+          登入
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

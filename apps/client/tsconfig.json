@@ -1,0 +1,44 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "forceConsistentCasingInFileNames": false,
+    "strict": false,
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitUseStrict": false,
+    "noImplicitOverride": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noImplicitReturns": false,
+    "resolveJsonModule": true,
+    "paths": {
+      "@ay-gosu/server-shared": ["../libs/@ay-gosu/server-shared/src/"],
+      "@ay-nestjs/share-client": ["../libs/@ay-nestjs/share-client/src/"],
+      "@ay/util": ["../libs/@ay/util/src/"],
+      "@ay/bot": ["../libs/@ay/bot/src/"],
+      "@ay/env": ["../libs/@ay/env/src/"],
+    },
+
+    "sourceMap": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "ES2022",
+    "useDefineForClassFields":false,
+    "module": "es2022",
+    "lib": ["ES2022", "DOM"],
+    "typeRoots": ["node_modules/@types"],
+    "types": ["node"]
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": false,
+
+  }
+}
