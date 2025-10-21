@@ -16,7 +16,10 @@
             <a
               *ngIf="item.route; else externalOrAction"
               class="cs-sidebar__link"
+              [class.cs-sidebar__link--disabled]="item.disabled"
               [routerLink]="item.route"
+              [attr.aria-disabled]="item.disabled || null"
+              [attr.tabindex]="item.disabled ? -1 : null"
               (click)="handleClick($event, item)"
             >
               <span *ngIf="item.icon as icon" class="cs-sidebar__icon" aria-hidden="true">
@@ -32,9 +35,12 @@
               <a
                 *ngIf="item.externalUrl; else emitOnly"
                 class="cs-sidebar__link"
-                [href]="item.externalUrl"
+                [class.cs-sidebar__link--disabled]="item.disabled"
+                [attr.href]="item.disabled ? null : item.externalUrl"
                 target="_blank"
                 rel="noopener noreferrer"
+                [attr.aria-disabled]="item.disabled || null"
+                [attr.tabindex]="item.disabled ? -1 : null"
                 (click)="handleClick($event, item)"
               >
                 <span *ngIf="item.icon as icon" class="cs-sidebar__icon" aria-hidden="true">
@@ -49,7 +55,9 @@
               <ng-template #emitOnly>
                 <button
                   class="cs-sidebar__link cs-sidebar__link--action"
+                  [class.cs-sidebar__link--disabled]="item.disabled"
                   type="button"
+                  [disabled]="item.disabled"
                   (click)="handleClick($event, item)"
                 >
                   <span *ngIf="item.icon as icon" class="cs-sidebar__icon" aria-hidden="true">
@@ -68,6 +76,8 @@
             <button
               type="button"
               class="cs-sidebar__group-header"
+              [disabled]="item.disabled"
+              [attr.aria-disabled]="item.disabled || null"
               (click)="toggleGroup(sectionIndex, itemIndex, item)"
               [attr.aria-expanded]="isGroupExpanded(sectionIndex, itemIndex, item)"
             >
@@ -98,7 +108,10 @@
                 <a
                   *ngIf="child.route; else childEmitOnly"
                   class="cs-sidebar__sublink"
+                  [class.cs-sidebar__sublink--disabled]="child.disabled"
                   [routerLink]="child.route"
+                  [attr.aria-disabled]="child.disabled || null"
+                  [attr.tabindex]="child.disabled ? -1 : null"
                   (click)="handleClick($event, child)"
                 >
                   <span>{{ child.label }}</span>
@@ -108,6 +121,7 @@
                   <button
                     class="cs-sidebar__sublink cs-sidebar__sublink--action"
                     type="button"
+                    [disabled]="child.disabled"
                     (click)="handleClick($event, child)"
                   >
                     <span>{{ child.label }}</span>

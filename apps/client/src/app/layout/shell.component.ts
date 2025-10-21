@@ -28,12 +28,14 @@ export class ShellComponent {
       items: [
         {
           label: '系統總覽',
+          disabled: true,
           icon: 'fa-chart-simple',
           route: '/app/dashboard',
         },
         {
           label: '會員中心',
           icon: 'fa-users',
+          disabled: true,
           children: [
             { label: '會員列表', route: '/app/members' },
             { label: '會員等級 / 標籤', route: '/app/members/tiers' },
@@ -45,6 +47,7 @@ export class ShellComponent {
         {
           label: '商品與內容',
           icon: 'fa-box-open',
+          disabled: true,
           children: [
             { label: '商品管理', route: '/app/products/list' },
             { label: '新增商品', route: '/app/products/new' },
@@ -58,6 +61,7 @@ export class ShellComponent {
         {
           label: '訂單與交易',
           icon: 'fa-receipt',
+          disabled: true,
           children: [
             { label: '訂單列表', route: '/app/orders' },
             { label: '交易紀錄', route: '/app/payments' },
@@ -69,6 +73,7 @@ export class ShellComponent {
         {
           label: '行銷推廣',
           icon: 'fa-bullhorn',
+          disabled: true,
           children: [
             { label: '優惠券管理', route: '/app/marketing/coupons' },
             { label: '活動管理', route: '/app/marketing/campaigns' },
@@ -80,6 +85,7 @@ export class ShellComponent {
         {
           label: '報表與分析',
           icon: 'fa-chart-line',
+          disabled: true,
           children: [
             { label: '銷售報表', route: '/app/reports/sales' },
             { label: '會員報表', route: '/app/reports/members' },
@@ -92,6 +98,7 @@ export class ShellComponent {
         {
           label: '系統管理',
           icon: 'fa-gear',
+          disabled: true,
           children: [
             { label: '基本設定', route: '/app/settings/general' },
             { label: '多語與時區', route: '/app/settings/locale' },
@@ -113,6 +120,7 @@ export class ShellComponent {
         {
           label: '開發者中心',
           icon: 'fa-code',
+          disabled: true,
           children: [
             { label: 'API Key 管理', route: '/app/developer/api-keys' },
             { label: 'Webhook 管理', route: '/app/developer/webhooks' },
@@ -123,6 +131,7 @@ export class ShellComponent {
         {
           label: '通知與客服',
           icon: 'fa-headset',
+          disabled: true,
           children: [
             { label: '客服工單', route: '/app/support/tickets' },
             { label: '聊天室', route: '/app/support/chat' },

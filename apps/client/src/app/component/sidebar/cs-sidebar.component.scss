@@ -67,6 +67,13 @@
   transform: translateX(4px);
 }
 
+.cs-sidebar__link--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+}
+
 .cs-sidebar__link--action {
   width: 100%;
   border: none;
@@ -165,6 +172,13 @@
   transform: translateX(4px);
 }
 
+.cs-sidebar__sublink--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+}
+
 .cs-sidebar__sublink--action {
   width: 100%;
   border: none;
@@ -178,6 +192,15 @@
 .cs-sidebar__group-header:focus-visible {
   background-color: rgba(148, 163, 184, 0.12);
   color: #ffffff;
+}
+
+.cs-sidebar__group-header:disabled,
+.cs-sidebar__link--action:disabled,
+.cs-sidebar__sublink--action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
 }
 
 .cs-sidebar__group-header:focus-visible {

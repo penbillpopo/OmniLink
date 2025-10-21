@@ -19,6 +19,7 @@ export interface CsSidebarItem {
   children?: CsSidebarItem[];
   collapsed?: boolean;
   action?: string;
+  disabled?: boolean;
 }
 
 export interface CsSidebarSection {
@@ -69,6 +70,10 @@ export class CsSidebarComponent implements OnChanges, OnInit {
     itemIndex: number,
     item: CsSidebarItem,
   ): boolean {
+    if (item.disabled) {
+      return false;
+    }
+
     return this.expandedGroups.has(
       this.getGroupKey(sectionIndex, itemIndex, item),
     );
@@ -79,6 +84,10 @@ export class CsSidebarComponent implements OnChanges, OnInit {
     itemIndex: number,
     item: CsSidebarItem,
   ): void {
+    if (item.disabled) {
+      return;
+    }
+
     const key = this.getGroupKey(sectionIndex, itemIndex, item);
 
     if (this.expandedGroups.has(key)) {
@@ -89,6 +98,12 @@ export class CsSidebarComponent implements OnChanges, OnInit {
   }
 
   handleClick(event: Event, item: CsSidebarItem): void {
+    if (item.disabled) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+
     if (!item.route && !item.externalUrl) {
       event.preventDefault();
     }
@@ -101,7 +116,7 @@ export class CsSidebarComponent implements OnChanges, OnInit {
 
     this.sections.forEach((section, sectionIndex) =>
       section.items.forEach((item, itemIndex) => {
-        if (item.children?.length && !item.collapsed) {
+        if (item.children?.length && !item.collapsed && !item.disabled) {
           this.expandedGroups.add(
             this.getGroupKey(sectionIndex, itemIndex, item),
           );
@@ -116,7 +131,10 @@ export class CsSidebarComponent implements OnChanges, OnInit {
     item: CsSidebarItem,
   ): string {
     const identifier =
-      item.route ?? item.label ?? `${sectionIndex}-${itemIndex}`;
+      item.route ??
+      item.action ??
+      item.label ??
+      `${sectionIndex}-${itemIndex}`;
     return `${sectionIndex}-${itemIndex}-${identifier}`;
   }
 }
