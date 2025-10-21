@@ -16,11 +16,11 @@
     </div>
   </header>
 
-  <div class="accounts-page__feedback" *ngIf="feedback as note">
-    <cs-alert [variant]="note.type === 'error' ? 'error' : 'success'">
-      {{ note.message }}
-    </cs-alert>
-  </div>
+  <cs-toast-container
+    class="accounts-page__toast"
+    [toasts]="toasts"
+    (dismissed)="dismissToast($event)"
+  ></cs-toast-container>
 
   <section class="accounts-card">
     <header class="accounts-card__header">

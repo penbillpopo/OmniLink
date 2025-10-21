@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  OnDestroy,
   OnInit,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,6 +19,7 @@ import {
 } from '../component';
 import { AccountDataService, AccountStatus } from './account-data.service';
 import { RoleDataService } from './role-data.service';
+import { CsToast, CsToastComponent } from '../component/toast/cs-toast.component';
 import { GetAccountListDto, GetRoleListDto } from '@ay-gosu/server-shared';
 
 @Component({
@@ -33,6 +35,7 @@ import { GetAccountListDto, GetRoleListDto } from '@ay-gosu/server-shared';
     CsSelectComponent,
     CsFormComponent,
     CsSpinnerComponent,
+    CsToastComponent,
     CsConfirmDialogComponent,
   ],
   providers: [DatePipe],
@@ -40,7 +43,7 @@ import { GetAccountListDto, GetRoleListDto } from '@ay-gosu/server-shared';
   styleUrl: './access-users.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AccessUsersComponent implements OnInit {
+export class AccessUsersComponent implements OnInit, OnDestroy {
   public readonly statusOptions: {
     value: AccountStatus;
     label: string;
@@ -55,7 +58,6 @@ export class AccessUsersComponent implements OnInit {
   public roles: GetRoleListDto[] = [];
   public loading = false;
   public error: string | null = null;
-  public feedback: { type: 'success' | 'error'; message: string } | null = null;
 
   public drawerOpen = false;
   public drawerMode: 'create' | 'edit' = 'edit';
@@ -64,6 +66,20 @@ export class AccessUsersComponent implements OnInit {
 
   public confirmDeleteOpen = false;
   private _deleteTarget: GetAccountListDto | null = null;
+
+  public roleSelectOptions: {
+    label: string;
+    value: string;
+    disabled?: boolean;
+  }[] = [{ label: '未指定', value: '', disabled: true }];
+
+  public readonly statusSelectOptions = this.statusOptions.map((status) => ({
+    label: status.label,
+    value: status.value,
+  }));
+
+  public toasts: CsToast[] = [];
+  private readonly _toastTimers = new Map<string, number>();
 
   public readonly accountForm = this._fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(64)]],
@@ -84,14 +100,10 @@ export class AccessUsersComponent implements OnInit {
     void this.loadReferenceData();
   }
 
-  public roleSelectOptions: { label: string; value: string }[] = [
-    { label: '未指定', value: '' },
-  ];
-
-  public readonly statusSelectOptions = this.statusOptions.map((status) => ({
-    label: status.label,
-    value: status.value,
-  }));
+  public ngOnDestroy(): void {
+    this._toastTimers.forEach((timer) => window.clearTimeout(timer));
+    this._toastTimers.clear();
+  }
 
   public async loadReferenceData(): Promise<void> {
     this.loading = true;
@@ -110,6 +122,7 @@ export class AccessUsersComponent implements OnInit {
     } catch (error) {
       console.error('Failed to load accounts', error);
       this.error = this._resolveError(error);
+      this.showToast('error', this.error);
     } finally {
       this.loading = false;
       this._cdr.markForCheck();
@@ -151,7 +164,6 @@ export class AccessUsersComponent implements OnInit {
     const { name, email, roleId, status } = this.accountForm.getRawValue();
     const roleIdNumber = roleId ? Number(roleId) : undefined;
     this.submitting = true;
-    this.feedback = null;
     this._cdr.markForCheck();
 
     try {
@@ -166,11 +178,11 @@ export class AccessUsersComponent implements OnInit {
       }
 
       await this.loadReferenceData();
-      this.feedback = { type: 'success', message: '變更已儲存' };
+      this.showToast('success', '變更已儲存');
       this.closeDrawer();
     } catch (error) {
       console.error('Failed to submit account', error);
-      this.feedback = { type: 'error', message: this._resolveError(error) };
+      this.showToast('error', this._resolveError(error));
     } finally {
       this.submitting = false;
       this._cdr.markForCheck();
@@ -196,16 +208,15 @@ export class AccessUsersComponent implements OnInit {
 
     this.submitting = true;
     this.confirmDeleteOpen = false;
-    this.feedback = null;
     this._cdr.markForCheck();
 
     try {
       await this._accountService.deleteAccount(this._deleteTarget.id);
       await this.loadReferenceData();
-      this.feedback = { type: 'success', message: '已刪除帳號' };
+      this.showToast('success', '已刪除帳號');
     } catch (error) {
       console.error('Failed to delete account', error);
-      this.feedback = { type: 'error', message: this._resolveError(error) };
+      this.showToast('error', this._resolveError(error));
     } finally {
       this.submitting = false;
       this._deleteTarget = null;
@@ -273,8 +284,53 @@ export class AccessUsersComponent implements OnInit {
     this.closeDrawer();
   }
 
+  public dismissToast(id: string): void {
+    const timer = this._toastTimers.get(id);
+    if (timer) {
+      window.clearTimeout(timer);
+      this._toastTimers.delete(id);
+    }
+
+    const next = this.toasts.filter((toast) => toast.id !== id);
+    if (next.length !== this.toasts.length) {
+      this.toasts = next;
+      this._cdr.markForCheck();
+    }
+  }
+
+  public showToast(
+    variant: CsToast['variant'],
+    message: string,
+    title?: string,
+  ): void {
+    if (!message) {
+      return;
+    }
+
+    const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const toast: CsToast = {
+      id,
+      message,
+      title,
+      variant,
+    };
+
+    this.toasts = [...this.toasts, toast];
+    this._cdr.markForCheck();
+
+    const timeout = window.setTimeout(() => {
+      this.dismissToast(id);
+    }, variant === 'error' ? 6000 : 4000);
+
+    this._toastTimers.set(id, timeout);
+  }
+
   private _buildRoleSelectOptions(): void {
-    const options: { label: string; value: string }[] = [];
+    const options: {
+      label: string;
+      value: string;
+      disabled?: boolean;
+    }[] = [];
 
     this.roles
       .filter((role) => role && role.id != null)
@@ -302,11 +358,15 @@ export class AccessUsersComponent implements OnInit {
         options.push({
           label: name,
           value: String(id),
+          disabled: false,
         });
       });
     }
 
-    this.roleSelectOptions = [{ label: '未指定', value: '' }, ...options];
+    this.roleSelectOptions = [
+      { label: '未指定', value: '', disabled: true },
+      ...options,
+    ];
   }
 
   private _reapplySelectedRole(): void {
