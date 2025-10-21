@@ -44,6 +44,7 @@ export class AccountModel {
     name: string,
     account: string,
     password?: string,
+    roleId?: number | null,
   ): Promise<boolean> {
     return wsc.execute(
       '/ws/account/updateAccount',
@@ -51,6 +52,7 @@ export class AccountModel {
       name,
       account,
       password,
+      roleId,
     ) as any;
   }
 
@@ -58,4 +60,4 @@ export class AccountModel {
     return wsc.execute('/ws/account/deleteAccount', id) as any;
   }
 }
-// 789a73e74d7ac93a231e0937f53cdd01a30ab5fbe64839f6141afa9bd866e005
+// b2705634f29505f423ba8f3b339b5f96c6208fdefb8c7bbe28953bdd21caf3c7

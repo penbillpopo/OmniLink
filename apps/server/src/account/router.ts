@@ -139,6 +139,11 @@ export function loadAccount() {
         type: 'string',
         required: false,
       },
+      {
+        name: 'roleId',
+        type: 'number | null',
+        required: false,
+      },
     ],
   });
 
@@ -155,4 +160,4 @@ export function loadAccount() {
     ],
   });
 }
-// c27e89af527957d72f34ff243bfee9be174ee8f608c183a780ccba9564663c24
+// 288f37b063a25ea3e7c3f54b76d3f78445bc0aba069699d6029cab1814d5f101

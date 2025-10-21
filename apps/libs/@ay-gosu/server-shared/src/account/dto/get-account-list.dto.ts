@@ -6,5 +6,13 @@ export class GetAccountListDto {
   public account: string;
   public name: string;
   public updatedAt: Date;
+  public roleId?: number;
+  public roleName?: string;
+  public permissions: string[];
+
+  public constructor(json: Partial<GetAccountListDto> = {}) {
+    Object.assign(this, json);
+    this.permissions = json.permissions ?? [];
+  }
 }
-// f55b07e2df3c3e5c607de17087fba09b5bf11db8218c03cdf81c2e71e278e3f5
+// edbee719912c4221ce6ad4b57b75cfeec2223b6fec055a42dd544c8f4dff74aa

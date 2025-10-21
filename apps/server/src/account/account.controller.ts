@@ -74,8 +74,9 @@ export class AccountController {
     name: string,
     account: string,
     password?: string,
+    roleId?: number | null,
   ): Promise<boolean> {
-    await this._accountService.update(id, name, account, password);
+    await this._accountService.update(id, name, account, password, roleId);
     return true;
   }
 

@@ -3,12 +3,14 @@
 import { loadCommon } from './_common/router';
 import { loadModule } from './_module/router';
 import { loadAccount } from './account/router';
+import { loadRole } from './role/router';
 import { loadStatus } from './status/router';
 
 export function loadModules() {
   loadCommon();
   loadModule();
   loadAccount();
+  loadRole();
   loadStatus();
 }
-// 9adafca8d5d290a499f44484921b215d0fbb78f4f40a3a948e6379bbcf3d169b
+// 1dbc073bef02e46c2cf2d898e2b14a15acfa2ac1a2eb8a9e2f82fac1f117d882

@@ -10,6 +10,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { StatusController } from './status/status.controller';
+import { RoleController } from './role/role.controller';
+import { RoleService } from './role/role.service';
 
 @Module({
   imports: [
@@ -17,11 +19,12 @@ import { StatusController } from './status/status.controller';
     SequelizeModule.forRoot('GOSU', Models),
     ScheduleModule.forRoot(),
   ],
-  controllers: [AppController, AccountController, StatusController],
+  controllers: [AppController, AccountController, RoleController, StatusController],
   providers: [
     AppService,
     AccountService,
     AccountHelperService,
+    RoleService,
     Provider.str('SERVER_JWT_KEY'),
     Provider.str('AES_ENCODE_KEY'),
     Provider.str('TRADE_SERVICE_URL'),

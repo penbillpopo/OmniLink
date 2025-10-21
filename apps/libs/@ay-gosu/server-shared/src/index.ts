@@ -9,6 +9,10 @@ import { UserDto } from './_module/dto/user.dto';
 import { GetAccountListDto } from './account/dto/get-account-list.dto';
 import { AccountModel } from './account/model';
 import { StatusModel } from './status/model';
+import { GetRoleListDto } from './role/dto/get-role-list.dto';
+import { RoleAccountDto } from './role/dto/role-account.dto';
+import { RoleDetailDto } from './role/dto/role-detail.dto';
+import { RoleModel } from './role/model';
 
 export {
   wsc,
@@ -20,5 +24,9 @@ export {
   GetAccountListDto,
   AccountModel,
   StatusModel,
+  GetRoleListDto,
+  RoleAccountDto,
+  RoleDetailDto,
+  RoleModel,
 };
-// 2499a9ae7414f44821f3868b6e7d7bf6944b1a10c19eda6c59815d5bc86b9451
+// 68de4e31f4e0303a28af823d818db637349b6684692a58c8ff7202c04dd02f66

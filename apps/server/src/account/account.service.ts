@@ -1,6 +1,5 @@
-import { Account } from '@ay-gosu/sequelize-models';
+import { Account, Role } from '@ay-gosu/sequelize-models';
 import { Errors } from '@ay-gosu/util/errors';
-import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 import { validate } from 'class-validator';
@@ -67,13 +66,32 @@ export class AccountService {
 
   public async fetchUserDto(accountId: number): Promise<UserDto> {
     const response = await Account.findByPk(accountId, {
-      attributes: ['id', 'name', 'account'],
+      attributes: ['id', 'name', 'account', 'roleId'],
+      include: [
+        {
+          model: Role,
+          attributes: ['id', 'name', 'permissions'],
+        },
+      ],
     });
+
+    if (!response) {
+      throw new Errors.ACCOUNT_NOT_FOUND();
+    }
+
     const account = response.get();
+    const role = (response as any).role ?? null;
+    const permissions = Array.isArray(role?.permissions)
+      ? (role.permissions as string[])
+      : [];
+
     return new UserDto({
       accountId: account.id,
       name: account.name,
       account: account.account,
+      roleId: account.roleId ?? role?.id,
+      roleName: role?.name,
+      permissions,
     });
   }
 
@@ -83,13 +101,33 @@ export class AccountService {
     const { pageIndex, pageSize, orderByColumn, orderBy } = searchDto;
     const total = await Account.count();
     const accounts = await Account.findAll({
-      attributes: ['id', 'name', 'account', 'updatedAt'],
+      attributes: ['id', 'name', 'account', 'updatedAt', 'roleId'],
+      include: [
+        {
+          model: Role,
+          attributes: ['id', 'name', 'permissions'],
+        },
+      ],
       limit: pageSize,
       offset: (pageIndex - 1) * pageSize,
       order: [[orderByColumn, orderBy]],
     });
     return {
-      data: accounts,
+      data: accounts.map((account) => {
+        const plain = account.get({ plain: true }) as any;
+        const role = plain.role ?? null;
+        return new GetAccountListDto({
+          id: plain.id,
+          account: plain.account,
+          name: plain.name,
+          updatedAt: plain.updatedAt,
+          roleId: plain.roleId ?? role?.id,
+          roleName: role?.name,
+          permissions: Array.isArray(role?.permissions)
+            ? (role.permissions as string[])
+            : [],
+        });
+      }),
       total,
     };
   }
@@ -98,6 +136,7 @@ export class AccountService {
     name: string,
     account: string,
     plainPassword: string,
+    roleId?: number,
   ): Promise<UserDto> {
     await validate(
       new AccountHelperDto({ name, account, password: plainPassword }),
@@ -105,22 +144,27 @@ export class AccountService {
 
     await this._accountHelperService.ensureAccountNotExist(account);
 
+    await this._ensureRoleExists(roleId);
+
     const { hashedPassword } = await this._hashPassword(plainPassword);
 
     const { id } = await Account.create({
       account,
       password: hashedPassword,
       name,
+      roleId: roleId ?? null,
     });
 
-    return new UserDto({
-      accountId: id,
-      account: account,
-      name,
-    });
+    return this.fetchUserDto(id);
   }
 
-  public async update(id, name, account, password): Promise<boolean> {
+  public async update(
+    id: number,
+    name: string,
+    account: string,
+    password?: string,
+    roleId?: number | null,
+  ): Promise<boolean> {
     const data = {
       name,
       account,
@@ -128,6 +172,10 @@ export class AccountService {
     if (password) {
       const { hashedPassword } = await this._hashPassword(password);
       data['password'] = hashedPassword;
+    }
+    if (roleId !== undefined) {
+      await this._ensureRoleExists(roleId);
+      data['roleId'] = roleId;
     }
     await Account.update(data, {
       where: {
@@ -150,5 +198,16 @@ export class AccountService {
     hashedPassword = bcrypt.hashSync(hashedPassword, 10);
 
     return { hashedPassword };
+  }
+
+  private async _ensureRoleExists(roleId?: number | null) {
+    if (roleId === undefined || roleId === null) {
+      return;
+    }
+
+    const exists = await Role.count({ where: { id: roleId } });
+    if (!exists) {
+      throw new Errors.ROLE_NOT_FOUND();
+    }
   }
 }
