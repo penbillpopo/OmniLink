@@ -13,11 +13,11 @@
     </div>
   </header>
 
-  <div class="page__feedback" *ngIf="feedback as notice">
-    <cs-alert [variant]="notice.variant === 'error' ? 'error' : 'success'">
-      {{ notice.message }}
-    </cs-alert>
-  </div>
+  <cs-toast-container
+    class="page__toast"
+    [toasts]="toasts"
+    (dismissed)="dismissToast($event)"
+  ></cs-toast-container>
 
   <section class="panel">
     <h2 class="panel__title">角色列表</h2>

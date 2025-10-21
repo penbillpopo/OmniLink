@@ -4,6 +4,7 @@ import {
   ChangeDetectorRef,
   Component,
   OnInit,
+  OnDestroy,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -25,10 +26,13 @@ import {
   CsTextareaComponent,
 } from '../component';
 import { RoleDataService } from './role-data.service';
+import {
+  CsToast,
+  CsToastComponent,
+} from '../component/toast/cs-toast.component';
 
 type DrawerMode = 'view' | 'form' | null;
 type FormMode = 'create' | 'edit';
-type FeedbackVariant = 'success' | 'error';
 
 @Component({
   selector: 'cs-access-roles',
@@ -47,17 +51,18 @@ type FeedbackVariant = 'success' | 'error';
     CsAlertComponent,
     CsIconButtonComponent,
     CsConfirmDialogComponent,
+    CsToastComponent,
   ],
   templateUrl: './access-roles.component.html',
   styleUrl: './access-roles.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AccessRolesComponent implements OnInit {
+export class AccessRolesComponent implements OnInit, OnDestroy {
   public roles: GetRoleListDto[] = [];
   public rolesLoading = false;
   public rolesError: string | null = null;
 
-  public feedback: { variant: FeedbackVariant; message: string } | null = null;
+  public toasts: CsToast[] = [];
 
   public drawerOpen = false;
   public drawerMode: DrawerMode = null;
@@ -99,6 +104,7 @@ export class AccessRolesComponent implements OnInit {
 
   public permissionDialogOpen = false;
   private _pendingPermissionSelection = new Set<string>();
+  private readonly _toastTimers = new Map<string, number>();
 
   public readonly roleForm = this._formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(64)]],
@@ -113,6 +119,11 @@ export class AccessRolesComponent implements OnInit {
 
   public ngOnInit(): void {
     void this.loadRoles();
+  }
+
+  public ngOnDestroy(): void {
+    this._toastTimers.forEach((timer) => window.clearTimeout(timer));
+    this._toastTimers.clear();
   }
 
   public async loadRoles(): Promise<void> {
@@ -168,17 +179,11 @@ export class AccessRolesComponent implements OnInit {
           this.selectedRole.order = match.order ?? 0;
         }
       }
-      this.feedback = {
-        variant: 'success',
-        message: '角色排序已更新',
-      };
+      this.showToast('success', '角色排序已更新');
     } catch (error) {
       console.error('Failed to reorder roles', error);
       this.roles = originalRoles;
-      this.feedback = {
-        variant: 'error',
-        message: this._resolveError(error),
-      };
+      this.showToast('error', this._resolveError(error));
     } finally {
       this.reordering = false;
       this._cdr.markForCheck();
@@ -222,10 +227,7 @@ export class AccessRolesComponent implements OnInit {
       this.drawerTitle = detail.name;
     } catch (error) {
       console.error('Failed to load role detail', error);
-      this.feedback = {
-        variant: 'error',
-        message: this._resolveError(error),
-      };
+      this.showToast('error', this._resolveError(error));
       this.closeDrawer();
     } finally {
       this.detailLoading = false;
@@ -328,10 +330,7 @@ export class AccessRolesComponent implements OnInit {
           permissions,
         });
 
-        this.feedback = {
-          variant: 'success',
-          message: `角色「${detail.name}」已建立`,
-        };
+        this.showToast('success', `角色「${detail.name}」已建立`);
 
         await this.loadRoles();
         await this.openRoleDetail(detail.id, detail);
@@ -351,20 +350,14 @@ export class AccessRolesComponent implements OnInit {
           },
         );
 
-        this.feedback = {
-          variant: 'success',
-          message: `角色「${detail.name}」已更新`,
-        };
+        this.showToast('success', `角色「${detail.name}」已更新`);
 
         await this.loadRoles();
         await this.openRoleDetail(detail.id, detail);
       }
     } catch (error) {
       console.error('Failed to submit role form', error);
-      this.feedback = {
-        variant: 'error',
-        message: this._resolveError(error),
-      };
+      this.showToast('error', this._resolveError(error));
     } finally {
       this.isSubmitting = false;
       this._cdr.markForCheck();
@@ -388,21 +381,56 @@ export class AccessRolesComponent implements OnInit {
 
     try {
       await this._roleDataService.deleteRole(this.selectedRole.id);
-      this.feedback = {
-        variant: 'success',
-        message: `角色「${this.selectedRole.name}」已刪除`,
-      };
+      this.showToast('success', `角色「${this.selectedRole.name}」已刪除`);
       this.confirmDeleteOpen = false;
       this.closeDrawer();
       await this.loadRoles();
     } catch (error) {
       console.error('Failed to delete role', error);
-      this.feedback = {
-        variant: 'error',
-        message: this._resolveError(error),
-      };
+      this.showToast('error', this._resolveError(error));
     }
     this._cdr.markForCheck();
+  }
+
+  public dismissToast(id: string): void {
+    const timer = this._toastTimers.get(id);
+    if (timer) {
+      window.clearTimeout(timer);
+      this._toastTimers.delete(id);
+    }
+
+    const next = this.toasts.filter((toast) => toast.id !== id);
+    if (next.length !== this.toasts.length) {
+      this.toasts = next;
+      this._cdr.markForCheck();
+    }
+  }
+
+  public showToast(
+    variant: CsToast['variant'],
+    message: string,
+    title?: string,
+  ): void {
+    if (!message) {
+      return;
+    }
+
+    const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const toast: CsToast = {
+      id,
+      message,
+      title,
+      variant,
+    };
+
+    this.toasts = [...this.toasts, toast];
+    this._cdr.markForCheck();
+
+    const timeout = window.setTimeout(() => {
+      this.dismissToast(id);
+    }, variant === 'error' ? 6000 : 4000);
+
+    this._toastTimers.set(id, timeout);
   }
 
   public closeDrawer(): void {
