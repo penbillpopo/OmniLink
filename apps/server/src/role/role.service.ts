@@ -5,7 +5,6 @@ import { Op, Transaction } from 'sequelize';
 import { ResponseListDto } from '../_common/dto/response-list.dto';
 import { SearchDto } from '../_common/dto/search.dto';
 import { GetRoleListDto } from './dto/get-role-list.dto';
-import { RoleAccountDto } from './dto/role-account.dto';
 import { RoleDetailDto } from './dto/role-detail.dto';
 
 @Injectable()
@@ -15,32 +14,26 @@ export class RoleService {
   ): Promise<ResponseListDto<GetRoleListDto[]>> {
     const pageIndex = Math.max(1, searchDto.pageIndex ?? 1);
     const pageSize = Math.max(1, Math.min(searchDto.pageSize ?? 20, 100));
-    const orderColumn = searchDto.orderByColumn ?? 'updatedAt';
-    const orderDirection = (searchDto.orderBy ?? 'DESC').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     const { rows, count } = await Role.findAndCountAll({
-      attributes: ['id', 'name', 'description', 'permissions', 'updatedAt'],
-      include: [
-        {
-          model: Account,
-          attributes: ['id'],
-        },
-      ],
+      attributes: ['id', 'name', 'description', 'permissions', 'order', 'updatedAt'],
       distinct: true,
       limit: pageSize,
       offset: (pageIndex - 1) * pageSize,
-      order: [[orderColumn, orderDirection]],
+      order: [
+        ['order', 'ASC'],
+        ['updatedAt', 'DESC'],
+      ],
     });
 
     const data = rows.map((role) => {
       const plain = role.get({ plain: true }) as any;
-      const accounts: any[] = Array.isArray(plain.accounts) ? plain.accounts : [];
       return new GetRoleListDto({
         id: plain.id,
         name: plain.name,
         description: plain.description ?? undefined,
         permissions: Array.isArray(plain.permissions) ? plain.permissions : [],
-        accountCount: accounts.length,
+        order: typeof plain.order === 'number' ? plain.order : 0,
         updatedAt: plain.updatedAt,
       });
     });
@@ -53,13 +46,7 @@ export class RoleService {
 
   public async getRoleDetail(id: number): Promise<RoleDetailDto> {
     const role = await Role.findByPk(id, {
-      attributes: ['id', 'name', 'description', 'permissions', 'updatedAt'],
-      include: [
-        {
-          model: Account,
-          attributes: ['id', 'account', 'name'],
-        },
-      ],
+      attributes: ['id', 'name', 'description', 'permissions', 'order', 'updatedAt'],
     });
 
     if (!role) {
@@ -67,21 +54,13 @@ export class RoleService {
     }
 
     const plain = role.get({ plain: true }) as any;
-    const accounts = (plain.accounts ?? []).map(
-      (account) =>
-        new RoleAccountDto({
-          id: account.id,
-          account: account.account,
-          name: account.name,
-        }),
-    );
 
     return new RoleDetailDto({
       id: plain.id,
       name: plain.name,
       description: plain.description ?? undefined,
       permissions: Array.isArray(plain.permissions) ? plain.permissions : [],
-      accounts,
+      order: typeof plain.order === 'number' ? plain.order : 0,
       updatedAt: plain.updatedAt,
     });
   }
@@ -90,7 +69,6 @@ export class RoleService {
     name: string,
     permissions: string[],
     description?: string,
-    accountIds: number[] = [],
   ): Promise<RoleDetailDto> {
     const sequelize = Role.sequelize;
     if (!sequelize) {
@@ -99,17 +77,17 @@ export class RoleService {
 
     const role = await sequelize.transaction(async (transaction) => {
       await this._ensureUniqueName(name, undefined, transaction);
+      const nextOrder = await this._getNextOrder(transaction);
 
       const created = await Role.create(
         {
           name,
           description: description ?? null,
           permissions: this._normalizePermissions(permissions),
+          order: nextOrder,
         },
         { transaction },
       );
-
-      await this._applyAccounts(created.id, accountIds, transaction);
 
       return created;
     });
@@ -122,7 +100,7 @@ export class RoleService {
     name: string,
     permissions: string[],
     description?: string,
-    accountIds?: number[],
+    order?: number,
   ): Promise<RoleDetailDto> {
     const sequelize = Role.sequelize;
     if (!sequelize) {
@@ -134,18 +112,21 @@ export class RoleService {
     await sequelize.transaction(async (transaction) => {
       await this._ensureUniqueName(name, id, transaction);
 
+      const payload: Partial<Role> = {
+        name,
+        description: description ?? null,
+        permissions: this._normalizePermissions(permissions),
+      };
+
+      if (order !== undefined) {
+        payload['order'] = order;
+      }
+
       await Role.update(
-        {
-          name,
-          description: description ?? null,
-          permissions: this._normalizePermissions(permissions),
-        },
+        payload,
         { where: { id }, transaction },
       );
 
-      if (accountIds !== undefined) {
-        await this._applyAccounts(id, accountIds, transaction);
-      }
     });
 
     return this.getRoleDetail(id);
@@ -171,6 +152,45 @@ export class RoleService {
       const deleted = await Role.destroy({ where: { id }, transaction });
       if (!deleted) {
         throw new Errors.DELETE_FAILED('角色刪除失敗');
+      }
+    });
+
+    return true;
+  }
+
+  public async reorderRoles(
+    entries: { id: number; order: number }[],
+  ): Promise<boolean> {
+    if (!Array.isArray(entries) || !entries.length) {
+      return true;
+    }
+
+    const sequelize = Role.sequelize;
+    if (!sequelize) {
+      throw new Error('Sequelize instance is not available');
+    }
+
+    const uniqueIds = new Set(entries.map((entry) => entry.id));
+    if (uniqueIds.size !== entries.length) {
+      throw new Errors.UPDATE_FAILED('排序資料重複');
+    }
+
+    await sequelize.transaction(async (transaction) => {
+      const roles = await Role.findAll({
+        attributes: ['id'],
+        where: { id: Array.from(uniqueIds) },
+        transaction,
+      });
+
+      if (roles.length !== entries.length) {
+        throw new Errors.ROLE_NOT_FOUND();
+      }
+
+      for (const entry of entries) {
+        await Role.update(
+          { order: entry.order },
+          { where: { id: entry.id }, transaction },
+        );
       }
     });
 
@@ -208,61 +228,11 @@ export class RoleService {
     }
   }
 
-  private async _applyAccounts(
-    roleId: number,
-    accountIds: number[],
-    transaction?: Transaction,
-  ) {
-    if (!Array.isArray(accountIds)) {
-      return;
+  private async _getNextOrder(transaction?: Transaction): Promise<number> {
+    const maxOrder = await Role.max<number, Role>('order', { transaction });
+    if (typeof maxOrder === 'number' && !Number.isNaN(maxOrder)) {
+      return maxOrder + 1;
     }
-
-    const uniqueIds = Array.from(
-      new Set(
-        accountIds.filter((id) => typeof id === 'number' && !Number.isNaN(id)),
-      ),
-    );
-
-    if (!uniqueIds.length) {
-      await Account.update(
-        { roleId: null },
-        {
-          where: { roleId },
-          transaction,
-        },
-      );
-      return;
-    }
-
-    const accounts = await Account.findAll({
-      attributes: ['id'],
-      where: { id: uniqueIds },
-      transaction,
-    });
-
-    if (accounts.length !== uniqueIds.length) {
-      throw new Errors.ACCOUNT_NOT_FOUND();
-    }
-
-    await Account.update(
-      { roleId: null },
-      {
-        where: {
-          roleId,
-          id: {
-            [Op.notIn]: uniqueIds,
-          },
-        },
-        transaction,
-      },
-    );
-
-    await Account.update(
-      { roleId },
-      {
-        where: { id: uniqueIds },
-        transaction,
-      },
-    );
+    return 0;
   }
 }

@@ -1,73 +1,205 @@
-.accounts {
+.accounts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2.5rem;
+}
+
+.accounts-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.accounts-page__header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.accounts-page__header p {
+  margin: 0.5rem 0 0;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.accounts-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.accounts-page__feedback {
+  max-width: 960px;
+}
+
+.accounts-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 32px 60px rgba(15, 23, 42, 0.06);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 2rem;
 }
 
-.accounts__header h1 {
-  margin: 0 0 0.35rem;
-  font-size: 1.5rem;
-}
-
-.accounts__header p {
-  margin: 0;
-  color: var(--color-muted);
-}
-
-.accounts__table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #ffffff;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
-}
-
-.accounts__table thead {
-  background: #f8fafc;
-  text-align: left;
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-muted);
-}
-
-.accounts__table th,
-.accounts__table td {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
-}
-
-.accounts__table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.accounts__tag {
-  display: inline-flex;
+.accounts-card__header {
+  display: flex;
   align-items: center;
-  border-radius: 999px;
-  padding: 0.25rem 0.65rem;
-  font-size: 0.75rem;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.accounts-card__header h2 {
+  margin: 0;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
-.accounts__tag--success {
+.accounts-card__meta {
+  font-size: 0.9rem;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.accounts-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.accounts-card__state {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  padding: 2.5rem 0;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.accounts-card__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 1.5rem;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.accounts-table thead tr {
+  background: rgba(241, 245, 249, 0.7);
+  text-align: left;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(100, 116, 139, 0.9);
+}
+
+.accounts-table th,
+.accounts-table td {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  font-size: 0.95rem;
+}
+
+.accounts-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.accounts-table tbody tr:hover {
+  background: rgba(241, 245, 249, 0.6);
+}
+
+.accounts-table__actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.danger-link {
+  color: #f97316;
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-tag--success {
   background: rgba(16, 185, 129, 0.12);
   color: #047857;
 }
 
-.accounts__tag--warning {
-  background: rgba(245, 158, 11, 0.12);
+.status-tag--warning {
+  background: rgba(251, 191, 36, 0.16);
   color: #b45309;
 }
 
-@media (max-width: 768px) {
-  .accounts {
+.status-tag--danger {
+  background: rgba(251, 113, 133, 0.14);
+  color: #be123c;
+}
+
+.status-tag--neutral {
+  background: rgba(148, 163, 184, 0.14);
+  color: rgba(71, 85, 105, 0.9);
+}
+
+.accounts-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 320px;
+  max-width: 420px;
+}
+
+.accounts-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .accounts-page {
+    padding: 1.75rem;
+  }
+
+  .accounts-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .accounts-card {
     padding: 1.5rem;
   }
 
-  .accounts__table {
-    font-size: 0.9rem;
+  .accounts-table th,
+  .accounts-table td {
+    padding: 0.85rem 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .accounts-table {
+    font-size: 0.85rem;
+  }
+
+  .accounts-table__actions {
+    display: flex;
+    gap: 0.5rem;
   }
 }

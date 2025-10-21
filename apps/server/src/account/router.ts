@@ -27,6 +27,16 @@ export function loadAccount() {
         required: true,
         decorators: ['@Password()'],
       },
+      {
+        name: 'roleId',
+        type: 'number',
+        required: false,
+      },
+      {
+        name: 'status',
+        type: 'string',
+        required: false,
+      },
     ],
   });
 
@@ -142,6 +152,11 @@ export function loadAccount() {
       {
         name: 'roleId',
         type: 'number | null',
+        required: false,
+      },
+      {
+        name: 'status',
+        type: 'string',
         required: false,
       },
     ],

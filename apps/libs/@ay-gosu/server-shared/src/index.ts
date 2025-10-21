@@ -10,7 +10,6 @@ import { GetAccountListDto } from './account/dto/get-account-list.dto';
 import { AccountModel } from './account/model';
 import { StatusModel } from './status/model';
 import { GetRoleListDto } from './role/dto/get-role-list.dto';
-import { RoleAccountDto } from './role/dto/role-account.dto';
 import { RoleDetailDto } from './role/dto/role-detail.dto';
 import { RoleModel } from './role/model';
 
@@ -25,7 +24,6 @@ export {
   AccountModel,
   StatusModel,
   GetRoleListDto,
-  RoleAccountDto,
   RoleDetailDto,
   RoleModel,
 };

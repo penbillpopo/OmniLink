@@ -51,12 +51,6 @@ export function loadRole() {
         type: 'string',
         required: false,
       },
-      {
-        name: 'accountIds',
-        type: 'number[]',
-        initializer: [],
-        required: false,
-      },
     ],
   });
 
@@ -86,9 +80,22 @@ export function loadRole() {
         required: false,
       },
       {
-        name: 'accountIds',
-        type: 'number[]',
+        name: 'order',
+        type: 'number',
         required: false,
+      },
+    ],
+  });
+
+  wss.on({
+    path: '/ws/role/reorderRoles',
+    controller: RoleController,
+    method: 'reorderRoles',
+    rules: [
+      {
+        name: 'orders',
+        type: 'any',
+        required: true,
       },
     ],
   });
@@ -106,4 +113,3 @@ export function loadRole() {
     ],
   });
 }
-// f7a1e6ed7ef8b83131abbd1db6bae1dda74ce8cb8b39c5ea77d3baa7bfad1b65

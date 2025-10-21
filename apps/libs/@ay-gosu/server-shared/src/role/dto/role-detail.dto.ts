@@ -1,28 +1,15 @@
-// 透過 @ay-nestjs/share 產生
-/* eslint-disable */
-import { RoleAccountDto } from './role-account.dto';
-
 export class RoleDetailDto {
   public id: number;
   public name: string;
   public description?: string;
   public permissions: string[];
-  public accounts: RoleAccountDto[];
-  public accountIds: number[];
+  public order: number;
   public updatedAt: Date;
 
   public constructor(json: Partial<RoleDetailDto> = {}) {
     Object.assign(this, json);
     this.permissions = json.permissions ?? [];
-    const accounts = json.accounts ?? [];
-    this.accounts = accounts.map((account) =>
-      account instanceof RoleAccountDto ? account : new RoleAccountDto(account),
-    );
-    this.accountIds =
-      json.accountIds ??
-      this.accounts
-        .map((account) => account.id)
-        .filter((id) => typeof id === 'number');
+    this.order = json.order ?? 0;
   }
 }
-// 4edc2eb5820426f33bd5d348724774746088249ee9f29b6a1c190311926432df
+// 2960b6f5a5376b67e83967dc90e56d5a31436da7d5fbea7f88f66cc5a4071a4b

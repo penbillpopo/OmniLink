@@ -7,6 +7,15 @@
 
     <cs-form class="register-form" [formGroup]="registerForm" (submitted)="submit()">
       <cs-input
+        formControlName="name"
+        type="text"
+        label="Full name"
+        placeholder="Your name"
+        [required]="true"
+        [errors]="nameErrors"
+      ></cs-input>
+
+      <cs-input
         formControlName="email"
         type="email"
         label="Email"

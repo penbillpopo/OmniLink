@@ -6,13 +6,13 @@ export class GetRoleListDto {
   public name: string;
   public description?: string;
   public permissions: string[];
-  public accountCount: number;
+  public order: number;
   public updatedAt: Date;
 
   public constructor(json: Partial<GetRoleListDto> = {}) {
     Object.assign(this, json);
     this.permissions = json.permissions ?? [];
-    this.accountCount = json.accountCount ?? 0;
+    this.order = json.order ?? 0;
   }
 }
-// ae864336135badabca7c4a8297b30042166b7c3371c4697ddcb6955332d0422f
+// 28b8bbf1a8b5d5d9cd707ba69dd06a2e67de1add0b0af5d0185bf8288e63c78a

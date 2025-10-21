@@ -21,14 +21,12 @@ export class RoleModel {
     name: string,
     permissions: string[],
     description?: string,
-    accountIds: number[] = [],
   ): Promise<RoleDetailDto> {
     return wsc.execute(
       '/ws/role/createRole',
       name,
       permissions,
       description,
-      accountIds,
     ) as any;
   }
 
@@ -37,7 +35,7 @@ export class RoleModel {
     name: string,
     permissions: string[],
     description?: string,
-    accountIds?: number[],
+    order?: number,
   ): Promise<RoleDetailDto> {
     return wsc.execute(
       '/ws/role/updateRole',
@@ -45,12 +43,18 @@ export class RoleModel {
       name,
       permissions,
       description,
-      accountIds,
+      order,
     ) as any;
+  }
+
+  static reorderRoles(
+    orders: { id: number; order: number }[],
+  ): Promise<boolean> {
+    return wsc.execute('/ws/role/reorderRoles', orders) as any;
   }
 
   static deleteRole(id: number): Promise<boolean> {
     return wsc.execute('/ws/role/deleteRole', id) as any;
   }
 }
-// a555c48519d9b82de39b8215443b448fc94a4b457691bf823adf967670757bfd
+// 4c7d651078d32b8b507ee1aafd62fd79c46eb8bfed68a7f1f354f2ca2b0087a3

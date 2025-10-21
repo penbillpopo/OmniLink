@@ -35,6 +35,11 @@ export class AccountService {
 
     await this.ensurePassword(accountId, password);
 
+    await Account.update(
+      { lastLoginAt: new Date() },
+      { where: { id: accountId } },
+    );
+
     const payload = await this.fetchUserDto(accountId);
 
     return payload;
@@ -43,6 +48,10 @@ export class AccountService {
   public async loginViaToken(token: string): Promise<UserDto> {
     const oldPayload = jwt.verify(token, this._serverJwtKey) as UserDto;
     const accountId = oldPayload.accountId;
+    await Account.update(
+      { lastLoginAt: new Date() },
+      { where: { id: accountId } },
+    );
     const user = await this.fetchUserDto(accountId);
     return user;
   }
@@ -99,9 +108,19 @@ export class AccountService {
     searchDto: SearchDto,
   ): Promise<ResponseListDto<GetAccountListDto[]>> {
     const { pageIndex, pageSize, orderByColumn, orderBy } = searchDto;
+    const orderColumn = orderByColumn ?? 'updatedAt';
+    const orderDirection = (orderBy ?? 'DESC') as 'ASC' | 'DESC';
     const total = await Account.count();
     const accounts = await Account.findAll({
-      attributes: ['id', 'name', 'account', 'updatedAt', 'roleId'],
+      attributes: [
+        'id',
+        'name',
+        'account',
+        'updatedAt',
+        'roleId',
+        'status',
+        'lastLoginAt',
+      ],
       include: [
         {
           model: Role,
@@ -110,7 +129,7 @@ export class AccountService {
       ],
       limit: pageSize,
       offset: (pageIndex - 1) * pageSize,
-      order: [[orderByColumn, orderBy]],
+      order: [[orderColumn, orderDirection]],
     });
     return {
       data: accounts.map((account) => {
@@ -123,9 +142,8 @@ export class AccountService {
           updatedAt: plain.updatedAt,
           roleId: plain.roleId ?? role?.id,
           roleName: role?.name,
-          permissions: Array.isArray(role?.permissions)
-            ? (role.permissions as string[])
-            : [],
+          status: plain.status ?? 'active',
+          lastLoginAt: plain.lastLoginAt ?? undefined,
         });
       }),
       total,
@@ -137,6 +155,7 @@ export class AccountService {
     account: string,
     plainPassword: string,
     roleId?: number,
+    status: 'active' | 'inactive' | 'suspended' = 'active',
   ): Promise<UserDto> {
     await validate(
       new AccountHelperDto({ name, account, password: plainPassword }),
@@ -145,6 +164,7 @@ export class AccountService {
     await this._accountHelperService.ensureAccountNotExist(account);
 
     await this._ensureRoleExists(roleId);
+    this._ensureValidStatus(status);
 
     const { hashedPassword } = await this._hashPassword(plainPassword);
 
@@ -153,6 +173,7 @@ export class AccountService {
       password: hashedPassword,
       name,
       roleId: roleId ?? null,
+      status,
     });
 
     return this.fetchUserDto(id);
@@ -164,6 +185,7 @@ export class AccountService {
     account: string,
     password?: string,
     roleId?: number | null,
+    status?: 'active' | 'inactive' | 'suspended',
   ): Promise<boolean> {
     const data = {
       name,
@@ -176,6 +198,10 @@ export class AccountService {
     if (roleId !== undefined) {
       await this._ensureRoleExists(roleId);
       data['roleId'] = roleId;
+    }
+    if (status !== undefined) {
+      this._ensureValidStatus(status);
+      data['status'] = status;
     }
     await Account.update(data, {
       where: {
@@ -208,6 +234,13 @@ export class AccountService {
     const exists = await Role.count({ where: { id: roleId } });
     if (!exists) {
       throw new Errors.ROLE_NOT_FOUND();
+    }
+  }
+
+  private _ensureValidStatus(status: string) {
+    const allowed = ['active', 'inactive', 'suspended'];
+    if (!allowed.includes(status)) {
+      throw new Errors.UPDATE_FAILED('無效的帳號狀態');
     }
   }
 }

@@ -5,10 +5,11 @@ export class GetAccountListDto {
   public updatedAt: Date;
   public roleId?: number;
   public roleName?: string;
-  public permissions: string[];
+  public status: 'active' | 'inactive' | 'suspended';
+  public lastLoginAt?: Date;
 
   public constructor(json: Partial<GetAccountListDto> = {}) {
     Object.assign(this, json);
-    this.permissions = json.permissions ?? [];
+    this.status = (json.status as any) ?? 'active';
   }
 }

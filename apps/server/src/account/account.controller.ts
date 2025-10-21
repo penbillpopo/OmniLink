@@ -44,8 +44,16 @@ export class AccountController {
     name: string,
     account: string,
     @Password() password: string,
+    roleId?: number,
+    status?: 'active' | 'inactive' | 'suspended',
   ): Promise<boolean> {
-    const user = await this._accountService.create(name, account, password);
+    const user = await this._accountService.create(
+      name,
+      account,
+      password,
+      roleId,
+      status,
+    );
     return !!user.accountId;
   }
 
@@ -75,8 +83,16 @@ export class AccountController {
     account: string,
     password?: string,
     roleId?: number | null,
+    status?: 'active' | 'inactive' | 'suspended',
   ): Promise<boolean> {
-    await this._accountService.update(id, name, account, password, roleId);
+    await this._accountService.update(
+      id,
+      name,
+      account,
+      password,
+      roleId,
+      status,
+    );
     return true;
   }
 

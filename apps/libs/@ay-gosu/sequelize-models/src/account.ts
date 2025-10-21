@@ -32,6 +32,17 @@ export class Account extends TimeStamps<Account> {
   @Column(DataType.STRING)
   public name: string;
 
+  @AllowNull(false)
+  @Column({
+    type: DataType.ENUM('active', 'inactive', 'suspended'),
+    defaultValue: 'active',
+  })
+  public status: 'active' | 'inactive' | 'suspended';
+
+  @AllowNull(true)
+  @Column(DataType.DATE)
+  public lastLoginAt?: Date;
+
   @AllowNull(true)
   @ForeignKey(() => Role)
   @Column(DataType.INTEGER)

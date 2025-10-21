@@ -19,8 +19,17 @@ export class AccountModel {
     name: string,
     account: string,
     password: string,
+    roleId?: number,
+    status?: 'active' | 'inactive' | 'suspended',
   ): Promise<boolean> {
-    return wsc.execute('/ws/account/register', name, account, password) as any;
+    return wsc.execute(
+      '/ws/account/register',
+      name,
+      account,
+      password,
+      roleId,
+      status,
+    ) as any;
   }
 
   // 檢查是否已經登入
@@ -45,6 +54,7 @@ export class AccountModel {
     account: string,
     password?: string,
     roleId?: number | null,
+    status?: 'active' | 'inactive' | 'suspended',
   ): Promise<boolean> {
     return wsc.execute(
       '/ws/account/updateAccount',
@@ -53,6 +63,7 @@ export class AccountModel {
       account,
       password,
       roleId,
+      status,
     ) as any;
   }
 

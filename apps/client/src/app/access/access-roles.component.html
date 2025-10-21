@@ -3,26 +3,297 @@
     <div>
       <h1 class="page__title">角色與權限</h1>
       <p class="page__description">
-        定義後台使用者的角色與權限範圍，支援權限組合與審核流程，確保資料安全。
+        定義後台使用者的角色與權限範圍，支援權限組合與帳號指派，確保資料安全。
       </p>
     </div>
     <div class="page__actions">
-      <button class="button button--primary" type="button">新增角色</button>
-      <button class="button button--ghost" type="button">權限定義檔</button>
+      <cs-button variant="primary" type="button" (click)="openCreateDrawer()">
+        新增角色
+      </cs-button>
     </div>
   </header>
 
+  <div class="page__feedback" *ngIf="feedback as notice">
+    <cs-alert [variant]="notice.variant === 'error' ? 'error' : 'success'">
+      {{ notice.message }}
+    </cs-alert>
+  </div>
+
   <section class="panel">
     <h2 class="panel__title">角色列表</h2>
-    <div class="data-grid">
-      <article class="data-grid__item" *ngFor="let role of roles">
-        <h3 class="data-grid__title">{{ role.name }}</h3>
-        <p class="data-grid__text">{{ role.description }}</p>
-        <p class="data-grid__text">人數：{{ role.members }} 位</p>
-        <div class="tag-list">
-          <span class="tag-list__item" *ngFor="let permission of role.permissions">{{ permission }}</span>
+
+    <div class="panel__body">
+      <div class="role-state" *ngIf="rolesLoading">
+        <cs-spinner size="md"></cs-spinner>
+        <span>載入角色資料中...</span>
+      </div>
+      <div class="role-state" *ngIf="reordering">
+        <cs-spinner size="sm"></cs-spinner>
+        <span>儲存排序中...</span>
+      </div>
+
+      <cs-alert variant="error" *ngIf="rolesError && !rolesLoading">
+        {{ rolesError }}
+      </cs-alert>
+
+      <ng-container *ngIf="!rolesLoading && !rolesError">
+        <div
+          class="data-grid role-grid"
+          *ngIf="roles.length; else emptyState"
+          cdkDropList
+          [cdkDropListData]="roles"
+          (cdkDropListDropped)="handleRoleDrop($event)"
+          [cdkDropListDisabled]="rolesLoading || reordering"
+        >
+          <article
+            class="data-grid__item role-card"
+            *ngFor="let role of roles; trackBy: trackRole"
+            cdkDrag
+            cdkDragLockAxis="y"
+          >
+            <header class="role-card__header">
+              <div>
+                <h3 class="role-card__title">{{ role.name }}</h3>
+                <p class="role-card__description" *ngIf="role.description">
+                  {{ role.description }}
+                </p>
+              </div>
+              <cs-button
+                variant="ghost"
+                type="button"
+                (click)="openRoleDetail(role.id)"
+              >
+                檢視詳情
+              </cs-button>
+            </header>
+
+            <dl class="role-card__meta">
+              <div class="role-card__meta-item">
+                <dt>最後更新</dt>
+                <dd>{{ formatUpdatedAt(role.updatedAt) }}</dd>
+              </div>
+            </dl>
+
+            <section class="role-card__permissions" *ngIf="role.permissions?.length">
+              <h4>權限</h4>
+              <div class="tag-list">
+                <span class="tag-list__item" *ngFor="let permission of role.permissions">
+                  {{ permissionLabel(permission) }}
+                </span>
+              </div>
+            </section>
+          </article>
         </div>
-      </article>
+      </ng-container>
     </div>
+
+    <ng-template #emptyState>
+      <div class="role-empty">
+        <h3>尚未建立任何角色</h3>
+        <p>建立角色以分配權限給不同的後台使用者。</p>
+        <cs-button variant="primary" type="button" (click)="openCreateDrawer()">
+          立即新增角色
+        </cs-button>
+      </div>
+    </ng-template>
   </section>
 </section>
+
+<cs-drawer
+  [open]="drawerOpen"
+  [title]="drawerTitle"
+  (openChange)="closeDrawer()"
+>
+  <ng-container [ngSwitch]="drawerMode">
+    <ng-container *ngSwitchCase="'view'">
+      <div class="role-detail" *ngIf="selectedRole && !detailLoading; else detailLoadingState">
+        <section class="role-detail__section">
+          <h3>角色資訊</h3>
+          <p class="role-detail__text">
+            {{ selectedRole.description || '尚未填寫描述' }}
+          </p>
+          <dl class="role-detail__meta">
+            <div>
+              <dt>最後更新</dt>
+              <dd>{{ formatUpdatedAt(selectedRole.updatedAt) }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="role-detail__section">
+          <h3>權限</h3>
+          <div class="tag-list" *ngIf="selectedRole.permissions?.length; else noPermission">
+            <span
+              class="tag-list__item"
+              *ngFor="let permission of selectedRole.permissions; trackBy: trackPermission"
+            >
+              {{ permissionLabel(permission) }}
+            </span>
+          </div>
+          <ng-template #noPermission>
+            <p class="role-detail__hint">尚未設定任何權限</p>
+          </ng-template>
+        </section>
+      </div>
+
+      <ng-template #detailLoadingState>
+        <div class="role-state">
+          <cs-spinner size="md"></cs-spinner>
+          <span>載入角色詳情...</span>
+        </div>
+      </ng-template>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'form'">
+      <form
+        class="role-form"
+        [formGroup]="roleForm"
+      >
+        <div class="role-form__field">
+          <cs-input
+            formControlName="name"
+            label="角色名稱"
+            placeholder="輸入角色名稱"
+            [required]="true"
+            [errors]="{ required: '必須填寫角色名稱', maxlength: '請輸入 64 字以內的名稱' }"
+          ></cs-input>
+        </div>
+
+        <div class="role-form__field">
+          <cs-textarea
+            formControlName="description"
+            label="角色描述"
+            placeholder="說明角色用途或權責"
+            [rows]="4"
+            [errors]="{ maxlength: '請輸入 255 字以內的描述' }"
+          ></cs-textarea>
+        </div>
+
+        <div class="role-form__field">
+          <div class="role-form__permissions">
+            <div class="role-form__permissions-header">
+              <label class="role-form__label">權限設定</label>
+              <span class="role-form__hint">
+                選擇此角色可以使用的功能。勾選後，符合的帳號才會擁有這些操作權限。
+              </span>
+            </div>
+            <div class="role-form__permissions-actions">
+              <cs-button
+                variant="outline"
+                type="button"
+                (click)="openPermissionDialog()"
+              >
+                選擇權限
+              </cs-button>
+              <span class="role-form__hint">
+                已選擇 {{ permissions.length }} 項權限
+              </span>
+            </div>
+            <div class="role-form__chips" *ngIf="permissions.length; else noSelectedPermissions">
+              <span
+                class="role-form__chip"
+                *ngFor="let permission of permissions; trackBy: trackPermission"
+              >
+                {{ permissionLabel(permission) }}
+                <button
+                  type="button"
+                  class="role-form__chip-remove"
+                  (click)="removePermission(permission)"
+                  aria-label="移除權限"
+                >
+                  ✕
+                </button>
+              </span>
+            </div>
+            <ng-template #noSelectedPermissions>
+              <p class="role-detail__hint">尚未選擇任何權限。</p>
+            </ng-template>
+          </div>
+        </div>
+      </form>
+    </ng-container>
+  </ng-container>
+
+  <div class="role-drawer__actions" csDrawerActions>
+    <ng-container [ngSwitch]="drawerMode">
+      <ng-container *ngSwitchCase="'view'">
+        <cs-button variant="ghost" type="button" (click)="startEdit()" [disabled]="detailLoading">
+          編輯角色
+        </cs-button>
+        <cs-button
+          variant="danger"
+          type="button"
+          (click)="requestDelete()"
+          [disabled]="detailLoading"
+        >
+          刪除角色
+        </cs-button>
+        <cs-button variant="text" type="button" (click)="closeDrawer()">
+          關閉
+        </cs-button>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'form'">
+        <cs-button
+          variant="ghost"
+          type="button"
+          (click)="closeDrawer()"
+          [disabled]="isSubmitting"
+        >
+          取消
+        </cs-button>
+        <cs-button
+          variant="primary"
+          type="button"
+          (click)="submitForm()"
+          [loading]="isSubmitting"
+        >
+          {{ formMode === 'create' ? '建立角色' : '儲存變更' }}
+        </cs-button>
+      </ng-container>
+    </ng-container>
+  </div>
+</cs-drawer>
+
+<cs-confirm-dialog
+  [open]="confirmDeleteOpen"
+  title="刪除角色"
+  message="確定要刪除此角色嗎？已指派的帳號將失去該角色的權限。"
+  confirmLabel="確認刪除"
+  cancelLabel="取消"
+  (openChange)="cancelDelete()"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+></cs-confirm-dialog>
+
+<cs-dialog
+  [open]="permissionDialogOpen"
+  title="選擇權限"
+  (openChange)="closePermissionDialog()"
+  [closeOnBackdrop]="false"
+>
+  <section class="role-permission-dialog">
+    <ul class="role-permission-dialog__list">
+      <li
+        class="role-permission-dialog__item"
+        *ngFor="let option of permissionOptions; trackBy: trackPermissionOption"
+      >
+        <mat-checkbox
+          [checked]="isPermissionSelected(option.key)"
+          (change)="togglePermissionSelection(option.key, $event.checked)"
+        >
+          {{ option.label }}
+        </mat-checkbox>
+      </li>
+    </ul>
+  </section>
+
+  <div class="role-permission-dialog__actions" csDialogActions>
+    <cs-button variant="ghost" type="button" (click)="closePermissionDialog()">
+      取消
+    </cs-button>
+    <cs-button variant="primary" type="button" (click)="confirmPermissionDialog()">
+      套用
+    </cs-button>
+  </div>
+</cs-dialog>

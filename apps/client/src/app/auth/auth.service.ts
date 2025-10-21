@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable, defer, filter, map, of, switchMap, take, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { catchError, delay } from 'rxjs/operators';
 import { TokenService } from 'src/services/token.service';
-import { UserDto } from '@ay-gosu/server-shared';
+import { AccountModel, UserDto } from '@ay-gosu/server-shared';
 
 export interface LoginPayload {
   email: string;
@@ -16,6 +16,12 @@ export interface LoginResponse {
     name: string;
     email: string;
   };
+}
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
 }
 
 @Injectable({
@@ -49,6 +55,27 @@ export class AuthService {
           }))
         );
       })
+    );
+  }
+
+  register(payload: RegisterPayload): Observable<void> {
+    const name = payload.name?.trim();
+    const email = payload.email?.trim().toLowerCase();
+    const password = payload.password ?? '';
+
+    if (!name || !email || !password) {
+      return throwError(() => new Error('請完整填寫註冊資訊。'));
+    }
+
+    return defer(() =>
+      AccountModel.register(name, email, password).then(result => ({ result }))
+    ).pipe(
+      map(({ result }) => {
+        if (!result) {
+          throw new Error('註冊失敗，請稍後再試。');
+        }
+      }),
+      catchError(error => throwError(() => new Error(this._resolveRegisterError(error))))
     );
   }
 
@@ -94,5 +121,18 @@ export class AuthService {
     const candidate = (account as unknown as Record<string, unknown>) ?? {};
     const email = candidate['email'] ?? candidate['mail'];
     return typeof email === 'string' ? email : undefined;
+  }
+
+  private _resolveRegisterError(error: unknown): string {
+    if (!error) {
+      return '註冊失敗，請稍後再試。';
+    }
+
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+
+    const message = (error as { message?: string })?.message;
+    return message ?? '註冊失敗，請稍後再試。';
   }
 }

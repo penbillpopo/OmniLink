@@ -27,13 +27,11 @@ export class RoleController {
     name: string,
     permissions: string[],
     description?: string,
-    accountIds: number[] = [],
   ): Promise<RoleDetailDto> {
     return this._roleService.createRole(
       name,
       permissions ?? [],
       description,
-      accountIds ?? [],
     );
   }
 
@@ -43,15 +41,22 @@ export class RoleController {
     name: string,
     permissions: string[],
     description?: string,
-    accountIds?: number[],
+    order?: number,
   ): Promise<RoleDetailDto> {
     return this._roleService.updateRole(
       id,
       name,
       permissions ?? [],
       description,
-      accountIds,
+      order,
     );
+  }
+
+  @Share()
+  public async reorderRoles(
+    orders: { id: number; order: number }[],
+  ): Promise<boolean> {
+    return this._roleService.reorderRoles(orders ?? []);
   }
 
   @Share()

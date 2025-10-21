@@ -31,6 +31,11 @@ export class Role extends TimeStamps<Role> {
   public description?: string;
 
   @AllowNull(false)
+  @Default(0)
+  @Column(DataType.INTEGER)
+  public order: number;
+
+  @AllowNull(false)
   @Default([])
   @Column(DataType.JSON)
   public permissions?: string[];
