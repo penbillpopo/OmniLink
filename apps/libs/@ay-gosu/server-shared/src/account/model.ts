@@ -71,4 +71,4 @@ export class AccountModel {
     return wsc.execute('/ws/account/deleteAccount', id) as any;
   }
 }
-// b2705634f29505f423ba8f3b339b5f96c6208fdefb8c7bbe28953bdd21caf3c7
+// 1b23aa3722b7c0879b27a43ad37396d7e29d422b799e7fbf1f9cae504011575a

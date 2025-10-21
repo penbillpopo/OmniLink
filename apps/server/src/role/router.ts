@@ -94,7 +94,7 @@ export function loadRole() {
     rules: [
       {
         name: 'orders',
-        type: 'any',
+        type: '{ id: number; order: number }[]',
         required: true,
       },
     ],
@@ -113,3 +113,4 @@ export function loadRole() {
     ],
   });
 }
+// 5c301083b465ba5555abc26d85baad2dff31637576f3eec85f9dcad68c85550f

@@ -16,4 +16,4 @@ export class GetAccountListDto {
     this.status = (json.status as any) ?? 'active';
   }
 }
-// 50c21abee803074f3a1bc2ce82c7f1e94f08b65d42118fdfa904ff7bbc5fead1
+// f0e6bb86596fbc3f06a9a119bd3e2b06c4484c1a3028eb9ae1163de9277ca068

@@ -27,16 +27,6 @@ export function loadAccount() {
         required: true,
         decorators: ['@Password()'],
       },
-      {
-        name: 'roleId',
-        type: 'number',
-        required: false,
-      },
-      {
-        name: 'status',
-        type: 'string',
-        required: false,
-      },
     ],
   });
 
@@ -79,6 +69,16 @@ export function loadAccount() {
         type: 'string',
         required: true,
         decorators: ['@Password()'],
+      },
+      {
+        name: 'roleId',
+        type: 'number',
+        required: false,
+      },
+      {
+        name: 'status',
+        type: "'active' | 'inactive' | 'suspended'",
+        required: false,
       },
     ],
   });
@@ -156,7 +156,7 @@ export function loadAccount() {
       },
       {
         name: 'status',
-        type: 'string',
+        type: "'active' | 'inactive' | 'suspended'",
         required: false,
       },
     ],
@@ -175,4 +175,4 @@ export function loadAccount() {
     ],
   });
 }
-// 288f37b063a25ea3e7c3f54b76d3f78445bc0aba069699d6029cab1814d5f101
+// b6201652e7a75f9c74497f63bf851d78bfc648ed0a140e197d90945fb7283c4d

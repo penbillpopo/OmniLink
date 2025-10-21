@@ -1,3 +1,6 @@
+// 透過 @ay-nestjs/share 產生
+/* eslint-disable */
+
 export class RoleDetailDto {
   public id: number;
   public name: string;
@@ -12,4 +15,4 @@ export class RoleDetailDto {
     this.order = json.order ?? 0;
   }
 }
-// 2960b6f5a5376b67e83967dc90e56d5a31436da7d5fbea7f88f66cc5a4071a4b
+// 4a46f01b1ba086e47085f49a473fca506e5ede6b976ef6ec4ef3310a97bca8aa

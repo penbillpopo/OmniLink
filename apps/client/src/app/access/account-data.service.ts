@@ -39,14 +39,14 @@ export class AccountDataService {
   public async createAccount(payload: {
     name: string;
     account: string;
-    password: string;
+    password?: string;
     roleId?: number;
     status?: AccountStatus;
   }): Promise<boolean> {
     return AccountModel.register(
       payload.name,
       payload.account,
-      payload.password,
+      payload.password ?? '',
       payload.roleId,
       payload.status,
     );

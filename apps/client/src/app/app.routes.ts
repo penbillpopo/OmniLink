@@ -50,7 +50,6 @@ import { SupportAnnouncementsComponent } from './support/support-announcements.c
 import { SupportChatComponent } from './support/support-chat.component';
 import { SupportFaqComponent } from './support/support-faq.component';
 import { SupportTicketsComponent } from './support/support-tickets.component';
-import { AccountManagementComponent } from './system/account-management.component';
 import { VerifyToken } from './guard/verify-token';
 
 export const routes: Routes = [
@@ -68,7 +67,6 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', component: DashboardComponent },
-      { path: 'account-management', component: AccountManagementComponent },
       { path: 'members', component: MembersListComponent },
       { path: 'members/tiers', component: MemberTiersComponent },
       { path: 'members/blacklist', component: MemberBlacklistComponent },

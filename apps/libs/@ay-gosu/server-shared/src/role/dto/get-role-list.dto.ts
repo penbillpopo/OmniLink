@@ -15,4 +15,4 @@ export class GetRoleListDto {
     this.order = json.order ?? 0;
   }
 }
-// 28b8bbf1a8b5d5d9cd707ba69dd06a2e67de1add0b0af5d0185bf8288e63c78a
+// a62f0d94947c6a9c99cb686219d261aedec48a0ab42a861deed514849d4867dc

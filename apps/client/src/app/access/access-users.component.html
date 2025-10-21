@@ -1,55 +1,152 @@
-<section class="page">
-  <header class="page__header">
+<section class="accounts-page">
+  <header class="accounts-page__header">
     <div>
-      <h1 class="page__title">管理員帳號</h1>
-      <p class="page__description">
-        管理後台使用者帳號與啟用狀態，包含密碼重設、權限設定與安全審核。
-      </p>
+      <h1>管理員帳號</h1>
+      <p>管理後台使用者帳號啟用狀態、密碼重設與權限指派，確保系統安全。</p>
     </div>
-    <div class="page__actions">
-      <button class="button button--primary" type="button">新增管理員</button>
-      <button class="button button--ghost" type="button">匯出名單</button>
+    <div class="accounts-page__actions">
+      <cs-button
+        variant="ghost"
+        type="button"
+        (click)="exportAccounts()"
+        [disabled]="loading || !accounts.length"
+      >
+        匯出名單
+      </cs-button>
     </div>
   </header>
 
-  <section class="panel">
-    <h2 class="panel__title">帳號列表</h2>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>姓名</th>
-          <th>Email</th>
-          <th>角色</th>
-          <th>最後登入</th>
-          <th>狀態</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let admin of admins">
-          <td>{{ admin.name }}</td>
-          <td>{{ admin.email }}</td>
-          <td>{{ admin.role }}</td>
-          <td>{{ admin.lastLogin }}</td>
-          <td>
-            <span
-              class="badge"
-              [ngClass]="{
-                'badge--success': admin.status === 'active',
-                'badge--warning': admin.status === 'inactive',
-                'badge--danger': admin.status === 'locked'
-              }"
-            >
-              {{
-                admin.status === 'active'
-                  ? '啟用'
-                  : admin.status === 'inactive'
-                  ? '停用'
-                  : '已鎖定'
-              }}
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="accounts-page__feedback" *ngIf="feedback as note">
+    <cs-alert [variant]="note.type === 'error' ? 'error' : 'success'">
+      {{ note.message }}
+    </cs-alert>
+  </div>
+
+  <section class="accounts-card">
+    <header class="accounts-card__header">
+      <h2>帳號列表</h2>
+      <span class="accounts-card__meta">共 {{ accounts.length }} 位管理員</span>
+    </header>
+
+    <div class="accounts-card__body">
+      <div class="accounts-card__state" *ngIf="loading">
+        <cs-spinner size="md"></cs-spinner>
+        <span>載入中...</span>
+      </div>
+
+      <cs-alert variant="error" *ngIf="!loading && error">
+        {{ error }}
+      </cs-alert>
+
+      <table
+        class="accounts-table"
+        *ngIf="!loading && !error && accounts.length; else emptyAccounts"
+      >
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>Email</th>
+            <th>角色</th>
+            <th>最後登入</th>
+            <th>狀態</th>
+            <th class="accounts-table__actions">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let account of accounts; trackBy: trackByAccount">
+            <td>{{ account.name || '未命名使用者' }}</td>
+            <td>{{ account.account }}</td>
+            <td>{{ account.roleName || '未指定' }}</td>
+            <td>{{ formatDate(account.lastLoginAt) }}</td>
+            <td>
+              <span class="status-tag" [ngClass]="getStatusClass(account.status)">
+                {{ getStatusLabel(account.status) }}
+              </span>
+            </td>
+            <td class="accounts-table__actions">
+              <cs-button
+                variant="text"
+                type="button"
+                (click)="openEditDrawer(account)"
+              >
+                編輯
+              </cs-button>
+              <cs-button
+                variant="text"
+                type="button"
+                class="danger-link"
+                (click)="confirmDelete(account)"
+              >
+                刪除
+              </cs-button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #emptyAccounts>
+        <div class="accounts-card__empty" *ngIf="!loading && !error">
+          <p>目前尚未建立任何管理員帳號。</p>
+        </div>
+      </ng-template>
+    </div>
   </section>
 </section>
+
+<cs-drawer
+  [open]="drawerOpen"
+  (openChange)="handleDrawerClosed()"
+  [title]="'編輯管理員'"
+>
+  <cs-form class="accounts-form" [formGroup]="accountForm" (submitted)="submit()">
+    <cs-input
+      formControlName="name"
+      label="姓名"
+      placeholder="輸入姓名"
+      [required]="true"
+      [errors]="{ required: '請輸入姓名', maxlength: '請輸入 64 字以內的姓名' }"
+    ></cs-input>
+
+    <cs-input
+      formControlName="email"
+      type="email"
+      label="Email"
+      placeholder="you@example.com"
+      [required]="true"
+      [errors]="{ required: '請輸入 Email', email: 'Email 格式不正確' }"
+    ></cs-input>
+
+    <cs-select
+      formControlName="roleId"
+      label="角色"
+      [options]="roleSelectOptions"
+    ></cs-select>
+
+    <cs-select
+      formControlName="status"
+      label="帳號狀態"
+      [options]="statusSelectOptions"
+      [required]="true"
+    ></cs-select>
+
+    <div class="accounts-form__actions">
+      <cs-button variant="ghost" type="button" (click)="closeDrawer()" [disabled]="submitting">
+        取消
+      </cs-button>
+      <cs-button variant="primary" type="submit" [loading]="submitting">
+        儲存變更
+      </cs-button>
+    </div>
+  </cs-form>
+</cs-drawer>
+
+<cs-confirm-dialog
+  [open]="confirmDeleteOpen"
+  title="刪除帳號"
+  message="確定要刪除此管理員帳號嗎？"
+  confirmLabel="刪除"
+  cancelLabel="取消"
+  (openChange)="cancelDelete()"
+  (confirmed)="performDelete()"
+  (cancelled)="cancelDelete()"
+></cs-confirm-dialog>

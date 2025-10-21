@@ -57,4 +57,4 @@ export class RoleModel {
     return wsc.execute('/ws/role/deleteRole', id) as any;
   }
 }
-// 4c7d651078d32b8b507ee1aafd62fd79c46eb8bfed68a7f1f354f2ca2b0087a3
+// 73225bdcb1d5c3816e0e027078eeab5f58fac26bfe0490aecb49f06f970950ed
