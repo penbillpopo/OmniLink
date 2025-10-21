@@ -1,11 +1,9 @@
 import { Routes } from '@angular/router';
-
 import { AccessAuditComponent } from './access/access-audit.component';
 import { AccessLoginsComponent } from './access/access-logins.component';
 import { AccessRolesComponent } from './access/access-roles.component';
 import { AccessUsersComponent } from './access/access-users.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
-import { LogoutComponent } from './auth/logout.component';
 import { CatalogAttributesComponent } from './catalog/catalog-attributes.component';
 import { CatalogCategoriesComponent } from './catalog/catalog-categories.component';
 import { ContentAnnouncementsComponent } from './content/content-announcements.component';
@@ -82,7 +80,10 @@ export const routes: Routes = [
       { path: 'catalog/attributes', component: CatalogAttributesComponent },
       { path: 'inventory', component: InventoryManagementComponent },
       { path: 'content/articles', component: ContentArticlesComponent },
-      { path: 'content/announcements', component: ContentAnnouncementsComponent },
+      {
+        path: 'content/announcements',
+        component: ContentAnnouncementsComponent,
+      },
       { path: 'orders', component: OrdersListComponent },
       { path: 'payments', component: PaymentsHistoryComponent },
       { path: 'orders/refunds', component: OrderRefundsComponent },
@@ -102,7 +103,10 @@ export const routes: Routes = [
       { path: 'settings/general', component: SettingsGeneralComponent },
       { path: 'settings/locale', component: SettingsLocaleComponent },
       { path: 'settings/templates', component: SettingsTemplatesComponent },
-      { path: 'settings/feature-flags', component: SettingsFeatureFlagsComponent },
+      {
+        path: 'settings/feature-flags',
+        component: SettingsFeatureFlagsComponent,
+      },
       { path: 'settings/security', component: SettingsSecurityComponent },
       { path: 'access/roles', component: AccessRolesComponent },
       { path: 'access/users', component: AccessUsersComponent },
@@ -110,14 +114,19 @@ export const routes: Routes = [
       { path: 'access/logins', component: AccessLoginsComponent },
       { path: 'developer/api-keys', component: DeveloperApiKeysComponent },
       { path: 'developer/webhooks', component: DeveloperWebhooksComponent },
-      { path: 'developer/integrations', component: DeveloperIntegrationsComponent },
+      {
+        path: 'developer/integrations',
+        component: DeveloperIntegrationsComponent,
+      },
       { path: 'developer/logs', component: DeveloperLogsComponent },
       { path: 'support/tickets', component: SupportTicketsComponent },
       { path: 'support/chat', component: SupportChatComponent },
       { path: 'support/faq', component: SupportFaqComponent },
-      { path: 'support/announcements', component: SupportAnnouncementsComponent }
-    ]
+      {
+        path: 'support/announcements',
+        component: SupportAnnouncementsComponent,
+      },
+    ],
   },
-  { path: 'logout', component: LogoutComponent },
-  { path: '**', redirectTo: 'app/dashboard' }
+  { path: '**', redirectTo: 'app/dashboard' },
 ];

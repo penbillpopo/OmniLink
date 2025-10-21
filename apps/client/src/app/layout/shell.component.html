@@ -1,5 +1,10 @@
 <div class="app-shell">
-  <cs-sidebar class="app-shell__sidebar" [sections]="sections" brand="Trevia"></cs-sidebar>
+  <cs-sidebar
+    class="app-shell__sidebar"
+    [sections]="sections"
+    brand="Trevia"
+    (itemSelected)="onSidebarItemSelected($event)"
+  ></cs-sidebar>
 
   <main class="app-shell__content">
     <router-outlet />

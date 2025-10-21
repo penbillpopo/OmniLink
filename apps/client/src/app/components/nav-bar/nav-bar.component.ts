@@ -47,7 +47,11 @@ export class NavBarComponent {
   }
 
   public onLogoutClick() {
-    this._tokenService.logout();
-    this._router.navigateByUrl('form/login');
+    this._tokenService
+      .logout()
+      .then(() => this._router.navigateByUrl('/form/login'))
+      .catch((error) => {
+        console.error('Logout failed', error);
+      });
   }
 }

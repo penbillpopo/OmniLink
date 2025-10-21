@@ -7,7 +7,7 @@ import {
   OnInit,
   OnChanges,
   Output,
-  SimpleChanges
+  SimpleChanges,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -18,6 +18,7 @@ export interface CsSidebarItem {
   icon?: string;
   children?: CsSidebarItem[];
   collapsed?: boolean;
+  action?: string;
 }
 
 export interface CsSidebarSection {
@@ -31,7 +32,7 @@ export interface CsSidebarSection {
   imports: [CommonModule, RouterLink],
   templateUrl: './cs-sidebar.component.html',
   styleUrl: './cs-sidebar.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CsSidebarComponent implements OnChanges, OnInit {
   @Input() brand: string | null = 'Trevia';
@@ -41,10 +42,10 @@ export class CsSidebarComponent implements OnChanges, OnInit {
       items: [
         {
           label: '登出',
-          route: '/logout'
-        }
-      ]
-    }
+          action: 'logout',
+        },
+      ],
+    },
   ];
 
   @Output() itemSelected = new EventEmitter<CsSidebarItem>();
@@ -63,11 +64,21 @@ export class CsSidebarComponent implements OnChanges, OnInit {
     }
   }
 
-  isGroupExpanded(sectionIndex: number, itemIndex: number, item: CsSidebarItem): boolean {
-    return this.expandedGroups.has(this.getGroupKey(sectionIndex, itemIndex, item));
+  isGroupExpanded(
+    sectionIndex: number,
+    itemIndex: number,
+    item: CsSidebarItem,
+  ): boolean {
+    return this.expandedGroups.has(
+      this.getGroupKey(sectionIndex, itemIndex, item),
+    );
   }
 
-  toggleGroup(sectionIndex: number, itemIndex: number, item: CsSidebarItem): void {
+  toggleGroup(
+    sectionIndex: number,
+    itemIndex: number,
+    item: CsSidebarItem,
+  ): void {
     const key = this.getGroupKey(sectionIndex, itemIndex, item);
 
     if (this.expandedGroups.has(key)) {
@@ -91,14 +102,21 @@ export class CsSidebarComponent implements OnChanges, OnInit {
     this.sections.forEach((section, sectionIndex) =>
       section.items.forEach((item, itemIndex) => {
         if (item.children?.length && !item.collapsed) {
-          this.expandedGroups.add(this.getGroupKey(sectionIndex, itemIndex, item));
+          this.expandedGroups.add(
+            this.getGroupKey(sectionIndex, itemIndex, item),
+          );
         }
-      })
+      }),
     );
   }
 
-  private getGroupKey(sectionIndex: number, itemIndex: number, item: CsSidebarItem): string {
-    const identifier = item.route ?? item.label ?? `${sectionIndex}-${itemIndex}`;
+  private getGroupKey(
+    sectionIndex: number,
+    itemIndex: number,
+    item: CsSidebarItem,
+  ): string {
+    const identifier =
+      item.route ?? item.label ?? `${sectionIndex}-${itemIndex}`;
     return `${sectionIndex}-${itemIndex}-${identifier}`;
   }
 }
