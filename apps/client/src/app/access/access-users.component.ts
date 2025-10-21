@@ -84,23 +84,9 @@ export class AccessUsersComponent implements OnInit {
     void this.loadReferenceData();
   }
 
-  public get roleSelectOptions(): { label: string; value: string }[] {
-    if (!this.roles.length) {
-      return [{ label: '未指定', value: '' }];
-    }
-
-    const options = this.roles
-      .filter((role) => role && role.id != null)
-      .slice()
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      .map((role) => ({
-        label: role.name ?? `角色 #${role.id}`,
-        value: String(role.id),
-      }));
-    console.log(options);
-
-    return [{ label: '未指定', value: '' }, ...options];
-  }
+  public roleSelectOptions: { label: string; value: string }[] = [
+    { label: '未指定', value: '' },
+  ];
 
   public readonly statusSelectOptions = this.statusOptions.map((status) => ({
     label: status.label,
@@ -117,8 +103,10 @@ export class AccessUsersComponent implements OnInit {
         this._accountService.getAccounts(),
         this._roleDataService.getRoleList(),
       ]);
-      this.accounts = accounts.data;
-      this.roles = roles.data;
+      this.accounts = accounts.data ?? [];
+      this.roles = roles.data ?? [];
+      this._buildRoleSelectOptions();
+      this._reapplySelectedRole();
     } catch (error) {
       console.error('Failed to load accounts', error);
       this.error = this._resolveError(error);
@@ -132,19 +120,17 @@ export class AccessUsersComponent implements OnInit {
     this.drawerMode = 'edit';
     this.drawerOpen = true;
     this.selectedAccount = account;
+    const roleId = account.roleId != null ? String(account.roleId) : '';
     this.accountForm.reset({
       name: account.name ?? '',
       email: account.account ?? '',
-      roleId: account.roleId != null ? String(account.roleId) : '',
+      roleId,
       status: (account.status as AccountStatus) ?? 'active',
     });
     this._cdr.markForCheck();
   }
 
   public closeDrawer(): void {
-    if (this.submitting) {
-      return;
-    }
     this.drawerOpen = false;
     this.selectedAccount = null;
     this.accountForm.reset({
@@ -285,6 +271,54 @@ export class AccessUsersComponent implements OnInit {
 
   public handleDrawerClosed(): void {
     this.closeDrawer();
+  }
+
+  private _buildRoleSelectOptions(): void {
+    const options: { label: string; value: string }[] = [];
+
+    this.roles
+      .filter((role) => role && role.id != null)
+      .slice()
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .forEach((role) => {
+        options.push({
+          label: role.name ?? `角色 #${role.id}`,
+          value: String(role.id),
+        });
+      });
+
+    if (!options.length) {
+      const fallback = new Map<number, string>();
+      this.accounts.forEach((account) => {
+        if (account.roleId != null) {
+          fallback.set(
+            account.roleId,
+            account.roleName ?? `角色 #${account.roleId}`,
+          );
+        }
+      });
+
+      fallback.forEach((name, id) => {
+        options.push({
+          label: name,
+          value: String(id),
+        });
+      });
+    }
+
+    this.roleSelectOptions = [{ label: '未指定', value: '' }, ...options];
+  }
+
+  private _reapplySelectedRole(): void {
+    if (!this.drawerOpen) {
+      return;
+    }
+
+    const current = this.selectedAccount;
+    const roleValue = current?.roleId != null ? String(current.roleId) : '';
+    this.accountForm.controls.roleId.setValue(roleValue, {
+      emitEvent: false,
+    });
   }
 
   private _resolveError(error: unknown): string {
