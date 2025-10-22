@@ -9,11 +9,14 @@ import { SearchDto } from '../_common/dto/search.dto';
 import { UserDto } from '../_module/dto/user.dto';
 import { SessionDto } from '../_module/session.dto';
 import { AuditService } from '../audit/audit.service';
+import { LoginLogService } from '../login-log/login-log.service';
 import {
   AccountHelperDto,
   AccountHelperService,
 } from './account-helper.service';
 import { GetAccountListDto } from './dto/get-account-list.dto';
+
+type LoginLogStatus = 'success' | 'failed' | 'locked';
 
 @Injectable()
 export class AccountService {
@@ -22,41 +25,136 @@ export class AccountService {
     @Inject('SERVER_JWT_KEY')
     private readonly _serverJwtKey: string,
     private readonly _auditService: AuditService,
+    private readonly _loginLogService: LoginLogService,
   ) {}
 
-  public async login(account: string, password: string): Promise<UserDto> {
-    const row = await Account.findOne({
-      attributes: ['id'],
-      where: { account },
-    });
+  public async login(
+    account: string,
+    password: string,
+    session?: SessionDto,
+  ): Promise<UserDto> {
+    const ipAddress = this._resolveClientIp(session);
+    let accountRow: Account | null = null;
 
-    if (row === null) {
-      throw new Errors.ACCOUNT_NOT_FOUND();
+    try {
+      accountRow = await Account.findOne({
+        attributes: ['id', 'account', 'name', 'status'],
+        where: { account },
+      });
+
+      if (!accountRow) {
+        throw new Errors.ACCOUNT_NOT_FOUND();
+      }
+
+      const accountId = accountRow.id;
+
+      await this.ensurePassword(accountId, password);
+
+      await Account.update(
+        { lastLoginAt: new Date() },
+        { where: { id: accountId } },
+      );
+
+      const payload = await this.fetchUserDto(accountId);
+
+      await this._recordLoginLogSafe(
+        {
+          accountId: payload.accountId,
+          account: payload.account,
+          name: payload.name,
+          status: 'success',
+          ipAddress,
+          message: '登入成功',
+          metadata: {
+            method: 'password',
+          },
+        },
+        session,
+      );
+
+      return payload;
+    } catch (error) {
+      await this._recordLoginLogSafe(
+        {
+          accountId: accountRow?.id ?? null,
+          account: accountRow?.account ?? account,
+          name: accountRow?.name ?? null,
+          status: this._resolveLoginStatusFromError(error, accountRow),
+          ipAddress,
+          message: this._resolveErrorMessage(error),
+          metadata: {
+            method: 'password',
+          },
+        },
+        session,
+      );
+      throw error;
     }
-
-    const { id: accountId } = row;
-
-    await this.ensurePassword(accountId, password);
-
-    await Account.update(
-      { lastLoginAt: new Date() },
-      { where: { id: accountId } },
-    );
-
-    const payload = await this.fetchUserDto(accountId);
-
-    return payload;
   }
 
-  public async loginViaToken(token: string): Promise<UserDto> {
-    const oldPayload = jwt.verify(token, this._serverJwtKey) as UserDto;
-    const accountId = oldPayload.accountId;
-    await Account.update(
-      { lastLoginAt: new Date() },
-      { where: { id: accountId } },
-    );
-    const user = await this.fetchUserDto(accountId);
-    return user;
+  public async loginViaToken(
+    token: string,
+    session?: SessionDto,
+  ): Promise<UserDto> {
+    const ipAddress = this._resolveClientIp(session);
+    let decoded: Partial<UserDto> | null = null;
+    let accountRow: Account | null = null;
+
+    try {
+      decoded = jwt.verify(token, this._serverJwtKey) as UserDto;
+      const accountId = decoded.accountId;
+
+      await Account.update(
+        { lastLoginAt: new Date() },
+        { where: { id: accountId } },
+      );
+
+      const user = await this.fetchUserDto(accountId);
+
+      await this._recordLoginLogSafe(
+        {
+          accountId: user.accountId,
+          account: user.account,
+          name: user.name,
+          status: 'success',
+          ipAddress,
+          message: 'Token 登入成功',
+          metadata: {
+            method: 'token',
+          },
+        },
+        session,
+      );
+
+      return user;
+    } catch (error) {
+      if (!decoded) {
+        decoded = (jwt.decode(token) as Partial<UserDto>) ?? null;
+      }
+
+      if (decoded?.accountId) {
+        accountRow = await Account.findByPk(decoded.accountId, {
+          attributes: ['id', 'account', 'name', 'status'],
+        });
+      }
+
+      await this._recordLoginLogSafe(
+        {
+          accountId: accountRow?.id ?? decoded?.accountId ?? null,
+          account: accountRow?.account ?? decoded?.account ?? null,
+          name: accountRow?.name ?? decoded?.name ?? null,
+          status: this._resolveLoginStatusFromError(error, accountRow),
+          ipAddress,
+          message: this._resolveErrorMessage(error),
+          metadata: {
+            method: 'token',
+          },
+        },
+        session,
+      );
+
+      throw error;
+    }
   }
 
   public async ensurePassword(accountId: number, oldPassword: string) {
@@ -318,6 +416,73 @@ export class AccountService {
     );
 
     return true;
+  }
+
+  private _resolveClientIp(session?: SessionDto): string | null {
+    if (!session) {
+      return null;
+    }
+
+    const ip = (session as any)?.ip;
+    if (typeof ip === 'string' && ip.trim().length) {
+      return ip.trim();
+    }
+
+    return null;
+  }
+
+  private _resolveErrorMessage(error: unknown): string {
+    if (!error) {
+      return '登入失敗';
+    }
+
+    const message =
+      (error as any)?.message ??
+      (error as any)?.error?.message ??
+      (error as any)?.error ??
+      (typeof (error as any)?.toString === 'function'
+        ? (error as any).toString()
+        : null);
+
+    if (typeof message === 'string' && message.trim().length) {
+      return message.trim();
+    }
+
+    return '登入失敗';
+  }
+
+  private _resolveLoginStatusFromError(
+    error: unknown,
+    account?: Account | null,
+  ): LoginLogStatus {
+    const status = (error as any)?.code;
+    const accountStatus =
+      typeof (account as any)?.status === 'string'
+        ? ((account as any).status as string)
+        : null;
+
+    if (accountStatus && accountStatus !== 'active') {
+      return 'locked';
+    }
+
+    switch (status) {
+      case 'WRONG_PASSWORD':
+        return 'failed';
+
+      default:
+        return 'failed';
+    }
+  }
+
+  private async _recordLoginLogSafe(
+    options: Parameters<LoginLogService['record']>[0],
+    session?: SessionDto,
+  ): Promise<void> {
+    try {
+      await this._loginLogService.record(options, session);
+    } catch (logError) {
+      console.error('Failed to record login log', logError);
+    }
   }
 
   private async _hashPassword(hashedPassword: string) {

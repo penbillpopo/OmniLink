@@ -14,6 +14,8 @@ import { RoleController } from './role/role.controller';
 import { RoleService } from './role/role.service';
 import { AuditController } from './audit/audit.controller';
 import { AuditService } from './audit/audit.service';
+import { LoginLogController } from './login-log/login-log.controller';
+import { LoginLogService } from './login-log/login-log.service';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { AuditService } from './audit/audit.service';
     AccountController,
     AuditController,
     RoleController,
+    LoginLogController,
     StatusController,
   ],
   providers: [
@@ -33,6 +36,7 @@ import { AuditService } from './audit/audit.service';
     AccountService,
     AccountHelperService,
     AuditService,
+    LoginLogService,
     RoleService,
     Provider.str('SERVER_JWT_KEY'),
     Provider.str('AES_ENCODE_KEY'),

@@ -21,7 +21,7 @@ export class AccountController {
     account: string,
     @Password() password: string,
   ): Promise<string> {
-    const user = await this._accountService.login(account, password);
+    const user = await this._accountService.login(account, password, session);
     const token = jwt.sign(user.toJSON(), this._serverJwtKey);
     session.user = user;
 
@@ -33,7 +33,7 @@ export class AccountController {
     @Session() session: SessionDto,
     token: string,
   ): Promise<string> {
-    const user = await this._accountService.loginViaToken(token);
+    const user = await this._accountService.loginViaToken(token, session);
     session.user = user;
     return token;
   }
