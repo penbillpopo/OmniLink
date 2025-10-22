@@ -1,0 +1,144 @@
+:host {
+  display: block;
+}
+
+.page-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2.5rem;
+}
+
+.page-detail__header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.page-detail__header p {
+  margin: 0.5rem 0 0;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.page-detail__api {
+  color: rgba(59, 130, 246, 0.85);
+  font-size: 0.95rem;
+}
+
+.page-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 32px 60px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-card__header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.page-card__meta {
+  font-size: 0.9rem;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.page-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.page-card__state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 0;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.block-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.block-list__item {
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  background: rgba(248, 250, 252, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.block-list__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.block-list__header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.block-list__header p {
+  margin: 0.25rem 0 0;
+  color: rgba(100, 116, 139, 0.9);
+  font-size: 0.9rem;
+}
+
+.block-list__order {
+  font-size: 0.85rem;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.block-list__content {
+  margin: 0;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.page-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .page-detail {
+    padding: 1.75rem;
+  }
+
+  .page-card {
+    padding: 1.5rem;
+  }
+}

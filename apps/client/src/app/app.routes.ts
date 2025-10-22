@@ -34,6 +34,8 @@ import { OrderShipmentComponent } from './orders/order-shipment.component';
 import { PaymentsHistoryComponent } from './payments/payments-history.component';
 import { ProductCreateComponent } from './products/product-create.component';
 import { ProductListComponent } from './products/product-list.component';
+import { PageStructureComponent } from './page/page-structure.component';
+import { PageDetailComponent } from './page/page-detail.component';
 import { RegisterComponent } from './register/register.component';
 import { ReportsExportComponent } from './reports/reports-export.component';
 import { ReportsMembersComponent } from './reports/reports-members.component';
@@ -106,6 +108,8 @@ export const routes: Routes = [
         component: SettingsFeatureFlagsComponent,
       },
       { path: 'settings/security', component: SettingsSecurityComponent },
+      { path: 'pages/structure', component: PageStructureComponent },
+      { path: 'pages/:id', component: PageDetailComponent },
       { path: 'access/roles', component: AccessRolesComponent },
       { path: 'access/users', component: AccessUsersComponent },
       { path: 'access/audit', component: AccessAuditComponent },

@@ -5,11 +5,15 @@ import { Account } from './account';
 import { Audit } from './audit';
 import { Role } from './role';
 import { LoginLog } from './login-log';
+import { Page } from './page';
+import { PageBlock } from './page-block';
 
 export * from './account';
 export * from './audit';
 export * from './role';
 export * from './login-log';
+export * from './page';
+export * from './page-block';
 
-export const Models: ModelCtor[] = [Role, Account, Audit, LoginLog];
+export const Models: ModelCtor[] = [Role, Account, Audit, LoginLog, Page, PageBlock];
 SequelizeHierarchy(Sequelize);

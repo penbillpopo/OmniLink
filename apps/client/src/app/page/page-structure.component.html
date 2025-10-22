@@ -1,0 +1,98 @@
+<section class="page-structure">
+  <header class="page-structure__header">
+    <div>
+      <h1>頁面架構</h1>
+      <p>建立新的主頁面，新增後會自動出現在頁面專區的選單中。</p>
+    </div>
+  </header>
+
+  <section class="page-card">
+    <header class="page-card__header">
+      <h2>新增主頁面</h2>
+    </header>
+    <div class="page-card__body">
+      <cs-form [formGroup]="createPageForm" (submitted)="submit()">
+        <cs-input
+          formControlName="name"
+          label="頁面名稱"
+          placeholder="例如：首頁"
+          [required]="true"
+          [errors]="{ required: '請輸入頁面名稱', maxlength: '最多 64 字' }"
+        ></cs-input>
+
+        <cs-input
+          formControlName="slug"
+          label="自訂路徑 (選填)"
+          placeholder="例如：home"
+          [errors]="{ maxlength: '最多 64 字' }"
+        ></cs-input>
+
+        <cs-textarea
+          formControlName="description"
+          label="說明 (選填)"
+          placeholder="為此頁面填寫備註說明"
+          [rows]="3"
+          [errors]="{ maxlength: '最多 255 字' }"
+        ></cs-textarea>
+
+        <div class="page-card__actions">
+          <cs-button
+            variant="primary"
+            type="submit"
+            [loading]="creating"
+          >
+            新增頁面
+          </cs-button>
+        </div>
+      </cs-form>
+
+      <cs-alert variant="error" *ngIf="createError">
+        {{ createError }}
+      </cs-alert>
+    </div>
+  </section>
+
+  <section class="page-card">
+    <header class="page-card__header">
+      <h2>已建立的主頁面</h2>
+      <cs-button
+        variant="ghost"
+        type="button"
+        (click)="loadPages()"
+        [disabled]="loading"
+      >
+        重新整理
+      </cs-button>
+    </header>
+
+    <div class="page-card__body">
+      <div class="page-card__state" *ngIf="loading">
+        <cs-spinner size="md"></cs-spinner>
+        <span>載入中...</span>
+      </div>
+
+      <cs-alert variant="error" *ngIf="!loading && error">
+        {{ error }}
+      </cs-alert>
+
+      <ul class="page-list" *ngIf="!loading && !error && pages.length">
+        <li
+          class="page-list__item"
+          *ngFor="let page of pages; trackBy: trackByPage"
+          (click)="navigateToPage(page)"
+        >
+          <div>
+            <h3>{{ page.name }}</h3>
+            <p>路徑：{{ page.slug }}</p>
+            <p class="page-list__api">API：{{ buildApiEndpoint(page) }}</p>
+          </div>
+          <span class="page-list__arrow">前往</span>
+        </li>
+      </ul>
+
+      <div class="page-card__state" *ngIf="!loading && !error && !pages.length">
+        <span>尚未建立任何主頁面，立即新增吧！</span>
+      </div>
+    </div>
+  </section>
+</section>

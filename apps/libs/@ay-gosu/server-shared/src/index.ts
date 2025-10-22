@@ -19,6 +19,12 @@ import { StatusModel } from './status/model';
 import { GetRoleListDto } from './role/dto/get-role-list.dto';
 import { RoleDetailDto } from './role/dto/role-detail.dto';
 import { RoleModel } from './role/model';
+import { CreatePageDto } from './page/dto/create-page.dto';
+import { PageBlockDto } from './page/dto/page-block.dto';
+import { CreatePageBlockDto } from './page/dto/create-page-block.dto';
+import { PageDto } from './page/dto/page.dto';
+import { PageDetailDto } from './page/dto/page-detail.dto';
+import { PageModel } from './page/model';
 
 export {
   wsc,
@@ -40,5 +46,11 @@ export {
   GetRoleListDto,
   RoleDetailDto,
   RoleModel,
+  CreatePageDto,
+  PageBlockDto,
+  CreatePageBlockDto,
+  PageDto,
+  PageDetailDto,
+  PageModel,
 };
-// 2881807e6572ffddbeb29dfb5916b45b54dc977fbaf0b874275f783843525fee
+// 15af9644484e60ac9fae6e79a6ffed395471fb558230b85f8a24822451f68404

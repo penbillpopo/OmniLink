@@ -9,6 +9,10 @@ export const Errors = {
   WRONG_PASSWORD: _('密碼錯誤'),
   ROLE_EXIST: _('角色已經存在'),
   ROLE_NOT_FOUND: _('查無此角色'),
+  PAGE_EXIST: _('頁面已存在'),
+  PAGE_NOT_FOUND: _('查無此頁面'),
+  PAGE_BLOCK_NOT_FOUND: _('查無此頁面區塊'),
+  INVALID_BLOCK_TYPE: _('無效的區塊類型'),
 };
 
 Object.keys(Errors).map((key) => (Errors[key].code = key));

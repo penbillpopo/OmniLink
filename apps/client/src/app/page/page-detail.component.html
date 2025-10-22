@@ -1,0 +1,130 @@
+<section class="page-detail" *ngIf="!loading; else loadingTpl">
+  <ng-container *ngIf="page; else errorTpl">
+    <header class="page-detail__header">
+      <div>
+        <h1>{{ page?.name }}</h1>
+        <p>路徑：{{ page?.slug }} · 建立於 {{ page?.createdAt | date: 'yyyy/MM/dd HH:mm' }}</p>
+        <p class="page-detail__api">API：{{ apiEndpoint }}</p>
+      </div>
+    </header>
+
+    <section class="page-card">
+      <header class="page-card__header">
+        <h2>新增區塊</h2>
+      </header>
+      <div class="page-card__body">
+        <cs-form [formGroup]="blockForm" (submitted)="submitBlock()">
+          <cs-input
+            formControlName="name"
+            label="區塊名稱"
+            placeholder="例如：首頁輪播"
+            [required]="true"
+            [errors]="{ required: '請輸入區塊名稱', maxlength: '最多 64 字' }"
+          ></cs-input>
+
+          <cs-select
+            formControlName="type"
+            label="區塊類型"
+            [options]="blockTypes"
+            [required]="true"
+          ></cs-select>
+
+          <ng-container [ngSwitch]="blockForm.get('type')?.value">
+            <cs-textarea
+              *ngSwitchCase="'carousel'"
+              formControlName="imageUrls"
+              label="圖片網址"
+              placeholder="每行輸入一個圖片網址"
+              [rows]="4"
+            ></cs-textarea>
+
+            <div *ngSwitchCase="'banner'" class="page-detail__grid">
+              <cs-input
+                formControlName="imageUrl"
+                label="圖片網址"
+                placeholder="https://example.com/banner.jpg"
+              ></cs-input>
+              <cs-input
+                formControlName="link"
+                label="按鈕連結 (選填)"
+                placeholder="https://example.com"
+              ></cs-input>
+            </div>
+
+            <div *ngSwitchCase="'image_text'" class="page-detail__grid">
+              <cs-input
+                formControlName="imageUrl"
+                label="圖片網址"
+                placeholder="https://example.com/image.jpg"
+              ></cs-input>
+              <cs-input
+                formControlName="title"
+                label="標題"
+                placeholder="輸入標題"
+              ></cs-input>
+              <cs-textarea
+                formControlName="description"
+                label="描述"
+                [rows]="3"
+              ></cs-textarea>
+              <cs-textarea
+                formControlName="text"
+                label="內文"
+                [rows]="4"
+              ></cs-textarea>
+            </div>
+          </ng-container>
+
+          <div class="page-card__actions">
+            <cs-button variant="primary" type="submit" [loading]="creatingBlock">
+              新增區塊
+            </cs-button>
+          </div>
+        </cs-form>
+
+        <cs-alert variant="error" *ngIf="createBlockError">
+          {{ createBlockError }}
+        </cs-alert>
+      </div>
+    </section>
+
+    <section class="page-card">
+      <header class="page-card__header">
+        <h2>區塊列表</h2>
+        <span class="page-card__meta">共 {{ blocks.length }} 個</span>
+      </header>
+
+      <div class="page-card__body">
+        <div class="page-card__state" *ngIf="!blocks.length">
+          <span>尚未新增任何區塊</span>
+        </div>
+
+        <ul class="block-list" *ngIf="blocks.length">
+          <li class="block-list__item" *ngFor="let block of blocks; trackBy: trackByBlock">
+            <div class="block-list__header">
+              <div>
+                <h3>{{ block.name }}</h3>
+                <p>類型：{{ block.type }}</p>
+              </div>
+              <span class="block-list__order">排序 #{{ block.order }}</span>
+            </div>
+            <pre class="block-list__content">{{ formatContent(block) }}</pre>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </ng-container>
+</section>
+
+<ng-template #loadingTpl>
+  <div class="page-card__state">
+    <cs-spinner size="md"></cs-spinner>
+    <span>載入中...</span>
+  </div>
+</ng-template>
+
+<ng-template #errorTpl>
+  <cs-alert variant="error">
+    {{ error || '找不到指定的頁面' }}
+  </cs-alert>
+</ng-template>
