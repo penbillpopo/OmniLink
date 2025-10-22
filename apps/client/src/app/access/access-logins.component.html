@@ -1,57 +1,230 @@
-<section class="page">
-  <header class="page__header">
-    <div>
-      <h1 class="page__title">登入紀錄</h1>
-      <p class="page__description">
-        監控後台管理員登入紀錄與異常行為，確保帳號安全並支援警示通知。
+<section class="login-page">
+  <header class="login-page__header">
+    <div class="login-page__intro">
+      <h1>登入紀錄</h1>
+      <p>
+        監控後台管理員的登入活動，掌握異常行為與登入狀態，便於安全稽核與事件追蹤。
       </p>
     </div>
-    <div class="page__actions">
-      <button class="button button--ghost" type="button">篩選</button>
-      <button class="button button--primary" type="button">匯出 CSV</button>
+    <div class="login-page__actions">
+      <cs-button variant="ghost" type="button" (click)="toggleFilters()">
+        {{ filtersVisible ? '隱藏篩選' : '篩選條件' }}
+      </cs-button>
+      <cs-button
+        variant="primary"
+        type="button"
+        (click)="exportCsv()"
+        [loading]="exporting"
+        [disabled]="exporting || loading"
+      >
+        匯出 CSV
+      </cs-button>
     </div>
   </header>
 
-  <section class="panel">
-    <h2 class="panel__title">登入事件</h2>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>帳號</th>
-          <th>姓名</th>
-          <th>IP</th>
-          <th>位置</th>
-          <th>時間</th>
-          <th>狀態</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let record of loginRecords">
-          <td>{{ record.account }}</td>
-          <td>{{ record.name }}</td>
-          <td>{{ record.ip }}</td>
-          <td>{{ record.location }}</td>
-          <td>{{ record.time }}</td>
-          <td>
-            <span
-              class="badge"
-              [ngClass]="{
-                'badge--success': record.status === 'success',
-                'badge--warning': record.status === 'failed',
-                'badge--danger': record.status === 'locked'
-              }"
-            >
-              {{
-                record.status === 'success'
-                  ? '成功'
-                  : record.status === 'failed'
-                  ? '失敗'
-                  : '鎖定'
-              }}
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <cs-alert
+    variant="error"
+    *ngIf="exportError"
+    class="login-page__export-error"
+  >
+    {{ exportError }}
+  </cs-alert>
+
+  <section class="login-filters" *ngIf="filtersVisible">
+    <cs-form
+      class="login-filters__form"
+      [formGroup]="filtersForm"
+      (submitted)="applyFilters()"
+    >
+      <div class="login-filters__row">
+        <cs-search-input
+          formControlName="search"
+          label="帳號 / 姓名 / IP / 訊息"
+          placeholder="輸入關鍵字搜尋登入紀錄"
+        ></cs-search-input>
+
+        <cs-select
+          formControlName="status"
+          label="登入狀態"
+          [options]="statusOptions"
+        ></cs-select>
+      </div>
+
+      <div class="login-filters__row login-filters__row--dates">
+        <cs-date-picker formControlName="from" label="起始日期"></cs-date-picker>
+        <cs-date-picker formControlName="to" label="結束日期"></cs-date-picker>
+      </div>
+
+      <cs-alert
+        variant="warning"
+        *ngIf="dateRangeError"
+        class="login-filters__error"
+      >
+        {{ dateRangeError }}
+      </cs-alert>
+
+      <div class="login-filters__actions">
+        <cs-button
+          variant="ghost"
+          type="button"
+          [disabled]="loading"
+          (click)="resetFilters()"
+        >
+          清除條件
+        </cs-button>
+        <cs-button variant="primary" type="submit" [disabled]="loading">
+          套用篩選
+        </cs-button>
+      </div>
+    </cs-form>
+  </section>
+
+  <section class="login-card login-card--recent">
+    <header class="login-card__header">
+      <h2>近期登入</h2>
+      <span class="login-card__meta" *ngIf="recentLogs.length">
+        最近 {{ recentLogs.length }} 筆紀錄
+      </span>
+    </header>
+
+    <div class="login-card__body">
+      <div class="login-card__state" *ngIf="recentLoading">
+        <cs-spinner size="sm"></cs-spinner>
+        <span>載入中...</span>
+      </div>
+
+      <cs-alert variant="error" *ngIf="!recentLoading && recentError">
+        {{ recentError }}
+      </cs-alert>
+
+      <ng-container *ngIf="!recentLoading && !recentError">
+        <ul class="login-timeline" *ngIf="recentLogs.length; else noRecentLog">
+          <li
+            class="login-timeline__item"
+            *ngFor="let log of recentLogs; trackBy: trackByLog"
+          >
+            <div class="login-timeline__dot" [ngClass]="statusClass(log.status)"></div>
+            <div class="login-timeline__content">
+              <div class="login-timeline__header">
+                <span class="login-timeline__account">
+                  {{ log.account || '未知帳號' }}
+                </span>
+                <span class="login-timeline__status" [ngClass]="statusClass(log.status)">
+                  {{ formatStatus(log.status) }}
+                </span>
+              </div>
+              <p class="login-timeline__meta">
+                {{ log.name || '未提供姓名' }} · {{ formatDateTime(log.createdAt) }}
+              </p>
+              <p class="login-timeline__meta">
+                IP：{{ log.ipAddress || '-' }} · {{ log.location || '未知地區' }}
+              </p>
+              <p class="login-timeline__detail" *ngIf="log.message">
+                {{ log.message }}
+              </p>
+            </div>
+          </li>
+        </ul>
+      </ng-container>
+    </div>
+  </section>
+
+  <section class="login-card">
+    <header class="login-card__header">
+      <h2>登入紀錄列表</h2>
+      <span class="login-card__meta">共 {{ total }} 筆</span>
+    </header>
+
+    <div class="login-card__body">
+      <div class="login-card__state" *ngIf="loading">
+        <cs-spinner size="md"></cs-spinner>
+        <span>載入中...</span>
+      </div>
+
+      <cs-alert variant="error" *ngIf="!loading && error">
+        {{ error }}
+      </cs-alert>
+
+      <ng-container *ngIf="!loading && !error">
+        <table class="login-table" *ngIf="logs.length; else emptyLogs">
+          <thead>
+            <tr>
+              <th>時間</th>
+              <th>帳號</th>
+              <th>姓名</th>
+              <th>狀態</th>
+              <th>IP</th>
+              <th>地區</th>
+              <th>訊息</th>
+              <th>User Agent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of logs; trackBy: trackByLog">
+              <td>{{ formatDateTime(log.createdAt) }}</td>
+              <td>{{ log.account || '-' }}</td>
+              <td>{{ log.name || '-' }}</td>
+              <td>
+                <span class="badge" [ngClass]="statusClass(log.status)">
+                  {{ formatStatus(log.status) }}
+                </span>
+              </td>
+              <td>{{ log.ipAddress || '-' }}</td>
+              <td>{{ log.location || '-' }}</td>
+              <td class="login-table__message">{{ log.message || '-' }}</td>
+              <td class="login-table__ua">{{ log.userAgent || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+    </div>
+
+    <footer class="login-card__footer" *ngIf="!loading && !error && logs.length">
+      <div class="login-pagination">
+        <div class="login-pagination__info">
+          第 {{ pageIndex }} / {{ totalPages }} 頁，共 {{ total }} 筆
+        </div>
+        <div class="login-pagination__controls">
+          <cs-button
+            variant="ghost"
+            type="button"
+            (click)="prevPage()"
+            [disabled]="pageIndex <= 1"
+          >
+            上一頁
+          </cs-button>
+          <cs-button
+            variant="ghost"
+            type="button"
+            (click)="nextPage()"
+            [disabled]="pageIndex >= totalPages"
+          >
+            下一頁
+          </cs-button>
+        </div>
+        <label class="login-pagination__size">
+          每頁
+          <select [value]="pageSize" (change)="onPageSizeChange($event)">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">
+              {{ size }}
+            </option>
+          </select>
+          筆
+        </label>
+      </div>
+    </footer>
   </section>
 </section>
+
+<ng-template #noRecentLog>
+  <div class="login-card__state login-card__state--empty">
+    <span>目前沒有近期的登入紀錄</span>
+  </div>
+</ng-template>
+
+<ng-template #emptyLogs>
+  <cs-empty-state
+    title="尚無符合的登入紀錄"
+    description="調整篩選條件或稍後再試。"
+  ></cs-empty-state>
+</ng-template>
