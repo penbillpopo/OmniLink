@@ -234,6 +234,7 @@ export function getReferencedTypes(type: ts.TypeNode) {
     case SyntaxKind.StringKeyword:
     case SyntaxKind.BooleanKeyword:
     case SyntaxKind.AnyKeyword:
+    case SyntaxKind.UnknownKeyword:
     case SyntaxKind.NullKeyword:
     case SyntaxKind.LiteralType:
       return [];

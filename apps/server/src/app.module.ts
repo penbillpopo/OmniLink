@@ -12,6 +12,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { StatusController } from './status/status.controller';
 import { RoleController } from './role/role.controller';
 import { RoleService } from './role/role.service';
+import { AuditController } from './audit/audit.controller';
+import { AuditService } from './audit/audit.service';
 
 @Module({
   imports: [
@@ -19,11 +21,18 @@ import { RoleService } from './role/role.service';
     SequelizeModule.forRoot('GOSU', Models),
     ScheduleModule.forRoot(),
   ],
-  controllers: [AppController, AccountController, RoleController, StatusController],
+  controllers: [
+    AppController,
+    AccountController,
+    AuditController,
+    RoleController,
+    StatusController,
+  ],
   providers: [
     AppService,
     AccountService,
     AccountHelperService,
+    AuditService,
     RoleService,
     Provider.str('SERVER_JWT_KEY'),
     Provider.str('AES_ENCODE_KEY'),
