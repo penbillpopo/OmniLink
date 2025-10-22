@@ -44,6 +44,7 @@ export class AccountController {
     name: string,
     account: string,
     @Password() password: string,
+    @Session() session: SessionDto,
     roleId?: number,
     status?: 'active' | 'inactive' | 'suspended',
   ): Promise<boolean> {
@@ -53,6 +54,7 @@ export class AccountController {
       password,
       roleId,
       status,
+      session,
     );
     return !!user.accountId;
   }
@@ -84,6 +86,7 @@ export class AccountController {
     password?: string,
     roleId?: number | null,
     status?: 'active' | 'inactive' | 'suspended',
+    @Session() session?: SessionDto,
   ): Promise<boolean> {
     await this._accountService.update(
       id,
@@ -92,13 +95,17 @@ export class AccountController {
       password,
       roleId,
       status,
+      session,
     );
     return true;
   }
 
   @Share()
-  public async deleteAccount(id: number): Promise<boolean> {
-    await this._accountService.delete(id);
+  public async deleteAccount(
+    id: number,
+    @Session() session?: SessionDto,
+  ): Promise<boolean> {
+    await this._accountService.delete(id, session);
     return true;
   }
 }

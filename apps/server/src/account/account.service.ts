@@ -7,6 +7,8 @@ import * as jwt from 'jsonwebtoken';
 import { ResponseListDto } from '../_common/dto/response-list.dto';
 import { SearchDto } from '../_common/dto/search.dto';
 import { UserDto } from '../_module/dto/user.dto';
+import { SessionDto } from '../_module/session.dto';
+import { AuditService } from '../audit/audit.service';
 import {
   AccountHelperDto,
   AccountHelperService,
@@ -19,6 +21,7 @@ export class AccountService {
     private _accountHelperService: AccountHelperService,
     @Inject('SERVER_JWT_KEY')
     private readonly _serverJwtKey: string,
+    private readonly _auditService: AuditService,
   ) {}
 
   public async login(account: string, password: string): Promise<UserDto> {
@@ -156,6 +159,7 @@ export class AccountService {
     plainPassword: string,
     roleId?: number,
     status: 'active' | 'inactive' | 'suspended' = 'active',
+    session?: SessionDto,
   ): Promise<UserDto> {
     await validate(
       new AccountHelperDto({ name, account, password: plainPassword }),
@@ -166,6 +170,9 @@ export class AccountService {
     await this._ensureRoleExists(roleId);
     this._ensureValidStatus(status);
 
+    const normalizedStatus: 'active' | 'inactive' | 'suspended' =
+      status ?? 'active';
+
     const { hashedPassword } = await this._hashPassword(plainPassword);
 
     const { id } = await Account.create({
@@ -173,10 +180,29 @@ export class AccountService {
       password: hashedPassword,
       name,
       roleId: roleId ?? null,
-      status,
+      status: normalizedStatus,
     });
 
-    return this.fetchUserDto(id);
+    const user = await this.fetchUserDto(id);
+
+    await this._auditService.recordAction(
+      {
+        module: 'account',
+        category: 'create',
+        action: '新增管理員帳號',
+        detail: `新增帳號 ${user.account}（${user.name ?? '未命名使用者'}）`,
+        metadata: {
+          targetAccountId: user.accountId,
+          account: user.account,
+          name: user.name ?? null,
+          roleId: roleId ?? null,
+          status: normalizedStatus,
+        },
+      },
+      session,
+    );
+
+    return user;
   }
 
   public async update(
@@ -186,7 +212,18 @@ export class AccountService {
     password?: string,
     roleId?: number | null,
     status?: 'active' | 'inactive' | 'suspended',
+    session?: SessionDto,
   ): Promise<boolean> {
+    const original = await Account.findByPk(id, {
+      attributes: ['id', 'name', 'account', 'roleId', 'status'],
+    });
+
+    if (!original) {
+      throw new Errors.ACCOUNT_NOT_FOUND();
+    }
+
+    const originalPlain = original.get({ plain: true }) as any;
+
     const data = {
       name,
       account,
@@ -208,15 +245,78 @@ export class AccountService {
         id,
       },
     });
+
+    const updated = await Account.findByPk(id, {
+      attributes: ['id', 'name', 'account', 'roleId', 'status'],
+    });
+
+    const updatedPlain = updated
+      ? (updated.get({ plain: true }) as any)
+      : originalPlain;
+
+    await this._auditService.recordAction(
+      {
+        module: 'account',
+        category: 'update',
+        action: '更新管理員帳號',
+        detail: `更新帳號 ${
+          updatedPlain.account ?? originalPlain.account
+        }（${updatedPlain.name ?? originalPlain.name ?? '未命名使用者'}）`,
+        metadata: {
+          targetAccountId: id,
+          updates: {
+            ...(name !== undefined ? { name } : {}),
+            ...(account !== undefined ? { account } : {}),
+            ...(roleId !== undefined ? { roleId } : {}),
+            ...(status !== undefined ? { status } : {}),
+            passwordChanged: Boolean(password),
+          },
+        },
+      },
+      session,
+    );
+
     return true;
   }
 
-  public async delete(id: number): Promise<boolean> {
-    await Account.destroy({
+  public async delete(id: number, session?: SessionDto): Promise<boolean> {
+    const target = await Account.findByPk(id, {
+      attributes: ['id', 'name', 'account', 'roleId', 'status'],
+    });
+
+    if (!target) {
+      throw new Errors.ACCOUNT_NOT_FOUND();
+    }
+
+    const plain = target.get({ plain: true }) as any;
+
+    const deleted = await Account.destroy({
       where: {
         id,
       },
     });
+
+    if (!deleted) {
+      throw new Errors.DELETE_FAILED('管理員帳號刪除失敗');
+    }
+
+    await this._auditService.recordAction(
+      {
+        module: 'account',
+        category: 'delete',
+        action: '刪除管理員帳號',
+        detail: `刪除帳號 ${plain.account}（${
+          plain.name ?? '未命名使用者'
+        }）`,
+        metadata: {
+          targetAccountId: id,
+          roleId: plain.roleId ?? null,
+          status: plain.status ?? null,
+        },
+      },
+      session,
+    );
+
     return true;
   }
 

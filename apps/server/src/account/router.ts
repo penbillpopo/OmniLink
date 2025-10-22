@@ -71,6 +71,12 @@ export function loadAccount() {
         decorators: ['@Password()'],
       },
       {
+        name: 'session',
+        type: 'SessionDto',
+        required: true,
+        decorators: ['@Session()'],
+      },
+      {
         name: 'roleId',
         type: 'number',
         required: false,
@@ -159,6 +165,12 @@ export function loadAccount() {
         type: "'active' | 'inactive' | 'suspended'",
         required: false,
       },
+      {
+        name: 'session',
+        type: 'SessionDto',
+        required: false,
+        decorators: ['@Session()'],
+      },
     ],
   });
 
@@ -172,7 +184,13 @@ export function loadAccount() {
         type: 'number',
         required: true,
       },
+      {
+        name: 'session',
+        type: 'SessionDto',
+        required: false,
+        decorators: ['@Session()'],
+      },
     ],
   });
 }
-// b6201652e7a75f9c74497f63bf851d78bfc648ed0a140e197d90945fb7283c4d
+// 4eb81056115ffcfe7ccfb0170f9d8d795f5230f619e01fe7050b462a22ee4160

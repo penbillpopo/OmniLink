@@ -4,11 +4,15 @@ import { Injectable } from '@nestjs/common';
 import { Op, Transaction } from 'sequelize';
 import { ResponseListDto } from '../_common/dto/response-list.dto';
 import { SearchDto } from '../_common/dto/search.dto';
+import { SessionDto } from '../_module/session.dto';
+import { AuditService } from '../audit/audit.service';
 import { GetRoleListDto } from './dto/get-role-list.dto';
 import { RoleDetailDto } from './dto/role-detail.dto';
 
 @Injectable()
 export class RoleService {
+  public constructor(private readonly _auditService: AuditService) {}
+
   public async getRoleList(
     searchDto: SearchDto,
   ): Promise<ResponseListDto<GetRoleListDto[]>> {
@@ -69,6 +73,7 @@ export class RoleService {
     name: string,
     permissions: string[],
     description?: string,
+    session?: SessionDto,
   ): Promise<RoleDetailDto> {
     const sequelize = Role.sequelize;
     if (!sequelize) {
@@ -92,7 +97,23 @@ export class RoleService {
       return created;
     });
 
-    return this.getRoleDetail(role.id);
+    const detail = await this.getRoleDetail(role.id);
+
+    await this._auditService.recordAction(
+      {
+        module: 'role',
+        category: 'create',
+        action: '新增角色',
+        detail: `新增角色 ${detail.name}`,
+        metadata: {
+          roleId: detail.id,
+          permissions: detail.permissions ?? [],
+        },
+      },
+      session,
+    );
+
+    return detail;
   }
 
   public async updateRole(
@@ -101,13 +122,14 @@ export class RoleService {
     permissions: string[],
     description?: string,
     order?: number,
+    session?: SessionDto,
   ): Promise<RoleDetailDto> {
     const sequelize = Role.sequelize;
     if (!sequelize) {
       throw new Error('Sequelize instance is not available');
     }
 
-    await this.getRoleDetail(id);
+    const before = await this.getRoleDetail(id);
 
     await sequelize.transaction(async (transaction) => {
       await this._ensureUniqueName(name, id, transaction);
@@ -129,16 +151,43 @@ export class RoleService {
 
     });
 
-    return this.getRoleDetail(id);
+    const detail = await this.getRoleDetail(id);
+
+    await this._auditService.recordAction(
+      {
+        module: 'role',
+        category: 'update',
+        action: '更新角色',
+        detail: `更新角色 ${detail.name}`,
+        metadata: {
+          roleId: detail.id,
+          updates: {
+            name,
+            description: description ?? null,
+            order: order ?? null,
+            permissions: permissions ?? [],
+          },
+          previous: {
+            name: before.name,
+            description: before.description ?? null,
+            order: before.order ?? null,
+            permissions: before.permissions ?? [],
+          },
+        },
+      },
+      session,
+    );
+
+    return detail;
   }
 
-  public async deleteRole(id: number): Promise<boolean> {
+  public async deleteRole(id: number, session?: SessionDto): Promise<boolean> {
     const sequelize = Role.sequelize;
     if (!sequelize) {
       throw new Error('Sequelize instance is not available');
     }
 
-    await this.getRoleDetail(id);
+    const detail = await this.getRoleDetail(id);
 
     await sequelize.transaction(async (transaction) => {
       await Account.update(
@@ -155,11 +204,25 @@ export class RoleService {
       }
     });
 
+    await this._auditService.recordAction(
+      {
+        module: 'role',
+        category: 'delete',
+        action: '刪除角色',
+        detail: `刪除角色 ${detail.name}`,
+        metadata: {
+          roleId: detail.id,
+        },
+      },
+      session,
+    );
+
     return true;
   }
 
   public async reorderRoles(
     entries: { id: number; order: number }[],
+    session?: SessionDto,
   ): Promise<boolean> {
     if (!Array.isArray(entries) || !entries.length) {
       return true;
@@ -193,6 +256,19 @@ export class RoleService {
         );
       }
     });
+
+    await this._auditService.recordAction(
+      {
+        module: 'role',
+        category: 'update',
+        action: '調整角色排序',
+        detail: '更新角色排序順序',
+        metadata: {
+          updates: entries,
+        },
+      },
+      session,
+    );
 
     return true;
   }

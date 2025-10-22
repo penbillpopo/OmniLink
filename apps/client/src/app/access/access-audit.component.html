@@ -1,28 +1,259 @@
-<section class="page">
-  <header class="page__header">
-    <div>
-      <h1 class="page__title">操作日誌</h1>
-      <p class="page__description">
-        紀錄所有後台操作，包含修改、匯出與登入行為，協助稽核與問題追蹤。
+<section class="audit-page">
+  <header class="audit-page__header">
+    <div class="audit-page__intro">
+      <h1>操作日誌</h1>
+      <p>
+        追蹤後台操作紀錄，包含模組變更、資料異動與稽核資訊，協助事件追蹤與問題分析。
       </p>
     </div>
-    <div class="page__actions">
-      <button class="button button--ghost" type="button">篩選條件</button>
-      <button class="button button--primary" type="button">匯出日誌</button>
+    <div class="audit-page__actions">
+      <cs-button
+        variant="ghost"
+        type="button"
+        (click)="toggleFilters()"
+      >
+        {{ filtersVisible ? '隱藏篩選' : '篩選條件' }}
+      </cs-button>
+      <cs-button
+        variant="primary"
+        type="button"
+        (click)="exportLogs()"
+        [loading]="exporting"
+        [disabled]="exporting || loading"
+      >
+        匯出日誌
+      </cs-button>
     </div>
   </header>
 
-  <section class="panel">
-    <h2 class="panel__title">最新事件</h2>
-    <div class="timeline">
-      <div class="timeline__item" *ngFor="let log of logs">
-        <div class="timeline__dot"></div>
-        <div class="timeline__content">
-          <h3 class="timeline__title">{{ log.action }}</h3>
-          <p class="timeline__meta">{{ log.operator }} · {{ log.module }} · {{ log.time }}</p>
-          <p class="timeline__meta">{{ log.detail }}</p>
-        </div>
+  <cs-alert
+    variant="error"
+    *ngIf="exportError"
+    class="audit-page__export-error"
+  >
+    {{ exportError }}
+  </cs-alert>
+
+  <section class="audit-filters" *ngIf="filtersVisible">
+    <cs-form
+      class="audit-filters__form"
+      [formGroup]="filterForm"
+      (submitted)="applyFilters()"
+    >
+      <div class="audit-filters__row">
+        <cs-search-input
+          formControlName="search"
+          label="關鍵字"
+          placeholder="輸入操作、模組或操作者關鍵字"
+        ></cs-search-input>
+
+        <cs-select
+          formControlName="module"
+          label="模組"
+          [options]="moduleOptions"
+        ></cs-select>
+
+        <cs-select
+          formControlName="category"
+          label="類別"
+          [options]="categoryOptions"
+        ></cs-select>
       </div>
+
+      <div class="audit-filters__row audit-filters__row--dates">
+        <cs-date-picker
+          formControlName="from"
+          label="起始日期"
+        ></cs-date-picker>
+        <cs-date-picker
+          formControlName="to"
+          label="結束日期"
+        ></cs-date-picker>
+      </div>
+
+      <cs-alert
+        variant="warning"
+        *ngIf="dateRangeError"
+        class="audit-filters__error"
+      >
+        {{ dateRangeError }}
+      </cs-alert>
+
+      <div class="audit-filters__actions">
+        <cs-button
+          variant="ghost"
+          type="button"
+          (click)="resetFilters()"
+          [disabled]="loading"
+        >
+          清除
+        </cs-button>
+        <cs-button
+          variant="primary"
+          type="submit"
+          [disabled]="loading"
+        >
+          套用篩選
+        </cs-button>
+      </div>
+    </cs-form>
+  </section>
+
+  <section class="audit-card">
+    <header class="audit-card__header">
+      <h2>最新事件</h2>
+      <span class="audit-card__meta" *ngIf="recentLogs.length">
+        最近 6 筆活動
+      </span>
+    </header>
+
+    <div class="audit-card__body">
+      <div class="audit-card__state" *ngIf="recentLoading">
+        <cs-spinner size="sm"></cs-spinner>
+        <span>載入中...</span>
+      </div>
+
+      <cs-alert variant="error" *ngIf="!recentLoading && recentError">
+        {{ recentError }}
+      </cs-alert>
+
+      <ng-container *ngIf="!recentLoading && !recentError">
+        <div
+          class="audit-timeline"
+          *ngIf="recentLogs.length; else noRecentEvents"
+        >
+          <div
+            class="audit-timeline__item"
+            *ngFor="let log of recentLogs; trackBy: trackByLog"
+          >
+            <div class="audit-timeline__dot"></div>
+            <div class="audit-timeline__content">
+              <h3 class="audit-timeline__title">{{ log.action }}</h3>
+              <p class="audit-timeline__meta">
+                {{ log.operatorDisplay || log.operatorName || '未知使用者' }} ·
+                {{ log.module || '未指定模組' }}
+              </p>
+              <p class="audit-timeline__meta">
+                {{ formatDateTime(log.createdAt) }}
+              </p>
+              <p class="audit-timeline__detail" *ngIf="log.detail">
+                {{ log.detail }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </ng-container>
     </div>
   </section>
+
+  <section class="audit-card">
+    <header class="audit-card__header">
+      <h2>操作日誌列表</h2>
+      <span class="audit-card__meta">共 {{ total }} 筆</span>
+    </header>
+
+    <div class="audit-card__body">
+      <div class="audit-card__state" *ngIf="loading">
+        <cs-spinner size="md"></cs-spinner>
+        <span>載入中...</span>
+      </div>
+
+      <cs-alert variant="error" *ngIf="!loading && error">
+        {{ error }}
+      </cs-alert>
+
+      <ng-container *ngIf="!loading && !error">
+        <table class="audit-table" *ngIf="logs.length; else emptyAuditLogs">
+          <thead>
+            <tr>
+              <th>時間</th>
+              <th>操作</th>
+              <th>模組</th>
+              <th>類別</th>
+              <th>操作者</th>
+              <th>帳號</th>
+              <th>角色</th>
+              <th>IP</th>
+              <th>詳細內容</th>
+              <th>Metadata</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of logs; trackBy: trackByLog">
+              <td>{{ formatDateTime(log.createdAt) }}</td>
+              <td>{{ log.action }}</td>
+              <td>{{ log.module || '未指定' }}</td>
+              <td>{{ log.category || '未指定' }}</td>
+              <td>{{ log.operatorDisplay || log.operatorName || '未指派' }}</td>
+              <td>{{ log.operatorAccount || '-' }}</td>
+              <td>{{ log.operatorRole || '-' }}</td>
+              <td>{{ log.ipAddress || '-' }}</td>
+              <td class="audit-table__detail">
+                <span *ngIf="log.detail; else noDetail">{{ log.detail }}</span>
+              </td>
+              <td class="audit-table__metadata">
+                <span *ngIf="log.metadata; else noMetadata">
+                  {{ formatMetadata(log.metadata) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+    </div>
+
+    <footer
+      class="audit-card__footer"
+      *ngIf="!loading && !error && logs.length"
+    >
+      <div class="audit-pagination">
+        <div class="audit-pagination__info">
+          第 {{ pageIndex }} / {{ totalPages }} 頁，共 {{ total }} 筆
+        </div>
+        <div class="audit-pagination__controls">
+          <cs-button
+            variant="ghost"
+            type="button"
+            (click)="prevPage()"
+            [disabled]="pageIndex <= 1"
+          >
+            上一頁
+          </cs-button>
+          <cs-button
+            variant="ghost"
+            type="button"
+            (click)="nextPage()"
+            [disabled]="pageIndex >= totalPages"
+          >
+            下一頁
+          </cs-button>
+        </div>
+        <label class="audit-pagination__size">
+          每頁
+          <select [value]="pageSize" (change)="onPageSizeChange($event)">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">
+              {{ size }}
+            </option>
+          </select>
+          筆
+        </label>
+      </div>
+    </footer>
+  </section>
 </section>
+
+<ng-template #noRecentEvents>
+  <div class="audit-card__state audit-card__state--empty">
+    <span>目前沒有近期的操作紀錄</span>
+  </div>
+</ng-template>
+
+<ng-template #emptyAuditLogs>
+  <cs-empty-state
+    title="尚無符合的操作日誌"
+    description="調整篩選條件或稍後再試。"
+  ></cs-empty-state>
+</ng-template>
+
+<ng-template #noDetail> - </ng-template>
+<ng-template #noMetadata> - </ng-template>

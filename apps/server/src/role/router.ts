@@ -51,6 +51,12 @@ export function loadRole() {
         type: 'string',
         required: false,
       },
+      {
+        name: 'session',
+        type: 'SessionDto',
+        required: false,
+        decorators: ['@Session()'],
+      },
     ],
   });
 
@@ -84,6 +90,12 @@ export function loadRole() {
         type: 'number',
         required: false,
       },
+      {
+        name: 'session',
+        type: 'SessionDto',
+        required: false,
+        decorators: ['@Session()'],
+      },
     ],
   });
 
@@ -96,6 +108,12 @@ export function loadRole() {
         name: 'orders',
         type: '{ id: number; order: number }[]',
         required: true,
+      },
+      {
+        name: 'session',
+        type: 'SessionDto',
+        required: false,
+        decorators: ['@Session()'],
       },
     ],
   });
@@ -110,7 +128,13 @@ export function loadRole() {
         type: 'number',
         required: true,
       },
+      {
+        name: 'session',
+        type: 'SessionDto',
+        required: false,
+        decorators: ['@Session()'],
+      },
     ],
   });
 }
-// 5c301083b465ba5555abc26d85baad2dff31637576f3eec85f9dcad68c85550f
+// 2cec7f1c119c6566e7068f0025dabbceb1d8b22830e8a32f35024e13abb757b9
