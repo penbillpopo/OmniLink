@@ -38,4 +38,12 @@ export class PageController {
   ): Promise<PageBlockDto> {
     return this._pageService.createPageBlock(payload, session);
   }
+
+  @Share()
+  public async deletePageBlock(
+    @Session() session: SessionDto,
+    id: number,
+  ): Promise<boolean> {
+    return this._pageService.deletePageBlock(id, session);
+  }
 }

@@ -1,5 +1,12 @@
 <section class="page-detail" *ngIf="!loading; else loadingTpl">
   <ng-container *ngIf="page; else errorTpl">
+    <cs-toast-container
+      class="page-detail__toast"
+      *ngIf="toast"
+      [toasts]="[{ id: 'create-block', type: toast.type, message: toast.message }]"
+      (dismissed)="toast = null"
+    ></cs-toast-container>
+
     <header class="page-detail__header">
       <div>
         <h1>{{ page?.name }}</h1>
@@ -70,6 +77,14 @@
                 <p>類型：{{ block.type }}</p>
               </div>
               <span class="block-list__order">排序 #{{ block.order }}</span>
+              <cs-button
+                variant="text"
+                type="button"
+                class="block-list__remove"
+                (click)="removeBlock(block)"
+              >
+                移除
+              </cs-button>
             </div>
             <pre class="block-list__content">{{ formatContent(block) }}</pre>
           </li>

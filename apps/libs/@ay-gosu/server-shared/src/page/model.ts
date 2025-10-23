@@ -24,5 +24,9 @@ export class PageModel {
   static createPageBlock(payload: CreatePageBlockDto): Promise<PageBlockDto> {
     return wsc.execute('/ws/page/createPageBlock', payload) as any;
   }
+
+  static deletePageBlock(id: number): Promise<boolean> {
+    return wsc.execute('/ws/page/deletePageBlock', id) as any;
+  }
 }
-// a076498729c18bc83c4f1221469e833429d8a8cbaf4b9060cfc20ad2a17511d5
+// 18fd701289c75023716dda1907d7e164c0503df54f6c9780697d0b1ba3312ef8

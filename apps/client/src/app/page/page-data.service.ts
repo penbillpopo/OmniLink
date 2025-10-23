@@ -50,4 +50,8 @@ export class PageDataService {
     const block = await PageModel.createPageBlock(payload);
     return new PageBlockDto(block);
   }
+
+  public async deletePageBlock(id: number): Promise<boolean> {
+    return PageModel.deletePageBlock(id);
+  }
 }

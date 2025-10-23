@@ -148,6 +148,40 @@ export class PageService {
     return dto;
   }
 
+  public async deletePageBlock(
+    id: number,
+    session?: SessionDto,
+  ): Promise<boolean> {
+    const block = await PageBlock.findByPk(id, {
+      include: [{ model: Page }],
+    });
+
+    if (!block) {
+      throw new Errors.PAGE_BLOCK_NOT_FOUND();
+    }
+
+    const page = block.page ?? (await Page.findByPk(block.pageId));
+
+    await block.destroy();
+
+    await this._auditService.recordAction(
+      {
+        module: 'page',
+        category: 'delete',
+        action: '刪除頁面區塊',
+        detail: `刪除頁面 ${page?.name ?? block.pageId} 的區塊 ${block.name}`,
+        metadata: {
+          pageId: page?.id ?? block.pageId,
+          blockId: block.id,
+          type: block.type,
+        },
+      },
+      session,
+    );
+
+    return true;
+  }
+
   public async getPageDetailBySlug(slug: string): Promise<PageDetailDto> {
     const sanitizedSlug = this._sanitizeSlug(slug);
     if (!sanitizedSlug) {

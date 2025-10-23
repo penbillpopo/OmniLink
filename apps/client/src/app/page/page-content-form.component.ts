@@ -87,4 +87,23 @@ export class PageContentFormComponent {
   public needsText(layout: LayoutType): boolean {
     return layout !== 'image_only';
   }
+
+  public layoutPreview(layout: LayoutType): string {
+    switch (layout) {
+      case 'image_only':
+        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=IMAGE';
+      case 'text_only':
+        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=TEXT';
+      case 'image_top_text_bottom':
+        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=IMG%0ATEXT';
+      case 'text_top_image_bottom':
+        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=TEXT%0AIMG';
+      case 'image_left_text_right':
+        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=IMG+|+TEXT';
+      case 'text_left_image_right':
+        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=TEXT+|+IMG';
+      default:
+        return '';
+    }
+  }
 }

@@ -35,6 +35,13 @@
   gap: 1.5rem;
 }
 
+.page-detail__toast {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 1200;
+}
+
 .page-card__header {
   display: flex;
   align-items: center;
@@ -97,6 +104,7 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+  align-items: center;
 }
 
 .block-list__header h3 {
@@ -114,6 +122,10 @@
 .block-list__order {
   font-size: 0.85rem;
   color: rgba(148, 163, 184, 0.9);
+}
+
+.block-list__remove {
+  color: rgba(239, 68, 68, 0.85);
 }
 
 .block-list__content {

@@ -62,5 +62,24 @@ export function loadPage() {
       },
     ],
   });
+
+  wss.on({
+    path: '/ws/page/deletePageBlock',
+    controller: PageController,
+    method: 'deletePageBlock',
+    rules: [
+      {
+        name: 'session',
+        type: 'SessionDto',
+        required: true,
+        decorators: ['@Session()'],
+      },
+      {
+        name: 'id',
+        type: 'number',
+        required: true,
+      },
+    ],
+  });
 }
-// 4036e0aff3955e14fa24bce3dd5eef2a5bec09ce488eaf58e7852bc79bdd2385
+// 41c010303686667c187f7ebd687e20151152d9b023f1123697eb9e3ee3a942cc

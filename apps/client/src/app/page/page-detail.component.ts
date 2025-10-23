@@ -24,6 +24,7 @@ import {
   CsButtonComponent,
   CsFormComponent,
   CsInputComponent,
+  CsToastComponent,
   CsSelectComponent,
   CsSpinnerComponent,
   CsTextareaComponent,
@@ -42,6 +43,7 @@ import { environment } from '../../environments/environment';
     CsButtonComponent,
     CsFormComponent,
     CsInputComponent,
+    CsToastComponent,
     CsSelectComponent,
     CsTextareaComponent,
     CsSpinnerComponent,
@@ -60,6 +62,7 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   public creatingBlock = false;
   public createBlockError: string | null = null;
   public apiEndpoint = '';
+  public toast: { type: 'success' | 'error'; message: string } | null = null;
 
   public readonly blockTypes = [
     { value: 'carousel', label: '輪播圖' },
@@ -143,7 +146,13 @@ export class PageDetailComponent implements OnInit, OnDestroy {
 
   public async submitBlock(): Promise<void> {
     this.blockForm.markAllAsTouched();
-    if (this.blockForm.invalid || !this.page || this.creatingBlock) {
+    if (!this.page || this.creatingBlock) {
+      return;
+    }
+
+    if (this.blockForm.invalid) {
+      this.createBlockError = this._resolveFormValidationError();
+      this._cdr.markForCheck();
       return;
     }
 
@@ -231,11 +240,33 @@ export class PageDetailComponent implements OnInit, OnDestroy {
       this._resetDynamicGroups(type);
       this.blockForm.markAsPristine();
       this.blockForm.markAsUntouched();
+      this.toast = { type: 'success', message: '區塊已新增' };
     } catch (error) {
       console.error('Failed to create block', error);
       this.createBlockError = this._resolveError(error);
+      this.toast = { type: 'error', message: this.createBlockError };
     } finally {
       this.creatingBlock = false;
+      this._cdr.markForCheck();
+    }
+  }
+
+  public async removeBlock(block: PageBlockDto): Promise<void> {
+    if (this.creatingBlock) {
+      return;
+    }
+
+    try {
+      await this._pageDataService.deletePageBlock(block.id);
+      this.page = new PageDetailDto({
+        ...this.page,
+        blocks: (this.page?.blocks ?? []).filter((item) => item.id !== block.id),
+      });
+      this.toast = { type: 'success', message: '區塊已刪除' };
+    } catch (error) {
+      console.error('Failed to delete block', error);
+      this.toast = { type: 'error', message: this._resolveError(error) };
+    } finally {
       this._cdr.markForCheck();
     }
   }
@@ -374,7 +405,7 @@ export class PageDetailComponent implements OnInit, OnDestroy {
 
   private _createBannerGroup(): FormGroup {
     return this._formBuilder.nonNullable.group({
-      imageUrl: ['', Validators.required],
+      imageUrl: [''],
       link: [''],
       caption: [''],
     });
@@ -408,6 +439,23 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     }
 
     return '發生未知錯誤，請稍後再試';
+  }
+
+  private _resolveFormValidationError(): string {
+    const nameCtrl = this.blockForm.get('name');
+    if (nameCtrl?.hasError('required')) {
+      return '請輸入區塊名稱';
+    }
+    if (nameCtrl?.hasError('maxlength')) {
+      return '區塊名稱請勿超過 64 個字';
+    }
+
+    const typeCtrl = this.blockForm.get('type');
+    if (typeCtrl?.hasError('required')) {
+      return '請選擇區塊類型';
+    }
+
+    return '請確認必填欄位已完整填寫';
   }
 
   private _buildApiEndpoint(page: PageDto | null): string {

@@ -85,25 +85,16 @@
           label="圖片上傳"
         ></cs-image-upload>
 
-        <cs-input
-          *ngIf="needsText(group.value.layout)"
-          formControlName="title"
-          label="標題"
-          placeholder="輸入標題"
-        ></cs-input>
-
-        <cs-textarea
-          *ngIf="needsText(group.value.layout)"
-          formControlName="description"
-          label="描述"
-          [rows]="3"
-        ></cs-textarea>
+        <div class="layout-preview">
+          <img [src]="layoutPreview(group.value.layout)" alt="layout preview" />
+        </div>
 
         <cs-textarea
           *ngIf="needsText(group.value.layout)"
           formControlName="text"
-          label="內文"
+          label="文字內容"
           [rows]="4"
+          placeholder="輸入要呈現的文字"
         ></cs-textarea>
 
         <cs-button
