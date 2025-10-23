@@ -1,0 +1,121 @@
+<ng-container [formGroup]="form" [ngSwitch]="blockType">
+  <div *ngSwitchCase="'carousel'" class="block-section">
+    <header class="block-section__header">
+      <h3>輪播項目</h3>
+      <cs-button type="button" variant="ghost" (click)="addCarousel.emit()">
+        新增輪播圖
+      </cs-button>
+    </header>
+
+    <div class="block-repeat" formArrayName="carouselItems">
+      <div
+        class="block-repeat__item"
+        *ngFor="let group of carouselItems.controls; let i = index"
+        [formGroupName]="i"
+      >
+        <cs-image-upload
+          formControlName="imageUrl"
+          label="圖片上傳"
+        ></cs-image-upload>
+        <cs-input
+          formControlName="link"
+          label="超連結 (選填)"
+          placeholder="https://example.com"
+        ></cs-input>
+        <cs-input
+          formControlName="caption"
+          label="文字說明 (選填)"
+          placeholder="顯示於圖片上的文字"
+        ></cs-input>
+        <cs-button
+          type="button"
+          variant="text"
+          class="block-repeat__remove"
+          (click)="removeCarousel.emit(i)"
+          [disabled]="carouselItems.length <= 1"
+        >
+          移除
+        </cs-button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngSwitchCase="'banner'" class="block-section" [formGroup]="banner">
+    <div class="block-repeat__item">
+      <cs-image-upload
+        formControlName="imageUrl"
+        label="圖片上傳"
+      ></cs-image-upload>
+      <cs-input
+        formControlName="link"
+        label="按鈕連結 (選填)"
+        placeholder="https://example.com"
+      ></cs-input>
+      <cs-textarea
+        formControlName="caption"
+        label="文字說明 (選填)"
+        [rows]="2"
+      ></cs-textarea>
+    </div>
+  </div>
+
+  <div *ngSwitchCase="'image_text'" class="block-section">
+    <header class="block-section__header">
+      <h3>圖片 / 文字區塊</h3>
+      <cs-button type="button" variant="ghost" (click)="addImageText.emit()">
+        新增圖片與文字
+      </cs-button>
+    </header>
+
+    <div class="block-repeat" formArrayName="imageTextItems">
+      <div
+        class="block-repeat__item"
+        *ngFor="let group of imageTextItems.controls; let i = index"
+        [formGroupName]="i"
+      >
+        <cs-select
+          formControlName="layout"
+          label="版型選擇"
+          [options]="layoutOptions"
+        ></cs-select>
+
+        <cs-image-upload
+          *ngIf="needsImage(group.value.layout)"
+          formControlName="imageUrl"
+          label="圖片上傳"
+        ></cs-image-upload>
+
+        <cs-input
+          *ngIf="needsText(group.value.layout)"
+          formControlName="title"
+          label="標題"
+          placeholder="輸入標題"
+        ></cs-input>
+
+        <cs-textarea
+          *ngIf="needsText(group.value.layout)"
+          formControlName="description"
+          label="描述"
+          [rows]="3"
+        ></cs-textarea>
+
+        <cs-textarea
+          *ngIf="needsText(group.value.layout)"
+          formControlName="text"
+          label="內文"
+          [rows]="4"
+        ></cs-textarea>
+
+        <cs-button
+          type="button"
+          variant="text"
+          class="block-repeat__remove"
+          (click)="removeImageText.emit(i)"
+          [disabled]="imageTextItems.length <= 1"
+        >
+          移除
+        </cs-button>
+      </div>
+    </div>
+  </div>
+</ng-container>

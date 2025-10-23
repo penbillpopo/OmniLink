@@ -29,51 +29,14 @@
             [required]="true"
           ></cs-select>
 
-          <ng-container [ngSwitch]="blockForm.get('type')?.value">
-            <cs-textarea
-              *ngSwitchCase="'carousel'"
-              formControlName="imageUrls"
-              label="圖片網址"
-              placeholder="每行輸入一個圖片網址"
-              [rows]="4"
-            ></cs-textarea>
-
-            <div *ngSwitchCase="'banner'" class="page-detail__grid">
-              <cs-input
-                formControlName="imageUrl"
-                label="圖片網址"
-                placeholder="https://example.com/banner.jpg"
-              ></cs-input>
-              <cs-input
-                formControlName="link"
-                label="按鈕連結 (選填)"
-                placeholder="https://example.com"
-              ></cs-input>
-            </div>
-
-            <div *ngSwitchCase="'image_text'" class="page-detail__grid">
-              <cs-input
-                formControlName="imageUrl"
-                label="圖片網址"
-                placeholder="https://example.com/image.jpg"
-              ></cs-input>
-              <cs-input
-                formControlName="title"
-                label="標題"
-                placeholder="輸入標題"
-              ></cs-input>
-              <cs-textarea
-                formControlName="description"
-                label="描述"
-                [rows]="3"
-              ></cs-textarea>
-              <cs-textarea
-                formControlName="text"
-                label="內文"
-                [rows]="4"
-              ></cs-textarea>
-            </div>
-          </ng-container>
+          <cs-page-content-form
+            [form]="blockForm"
+            [blockType]="blockForm.get('type')?.value"
+            (addCarousel)="addCarouselItem()"
+            (removeCarousel)="removeCarouselItem($event)"
+            (addImageText)="addImageTextItem()"
+            (removeImageText)="removeImageTextItem($event)"
+          ></cs-page-content-form>
 
           <div class="page-card__actions">
             <cs-button variant="primary" type="submit" [loading]="creatingBlock">

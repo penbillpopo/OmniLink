@@ -1,0 +1,32 @@
+<div class="image-upload" [class.image-upload--disabled]="disabled">
+  <label class="image-upload__label">{{ label }}</label>
+  <p class="image-upload__hint" *ngIf="hint">{{ hint }}</p>
+
+  <div class="image-upload__preview" *ngIf="previewUrl">
+    <img [src]="previewUrl" alt="已上傳圖片預覽" />
+  </div>
+
+  <div class="image-upload__controls">
+    <label class="image-upload__button" [class.image-upload__button--loading]="uploading">
+      <input
+        type="file"
+        [accept]="accept"
+        [disabled]="disabled || uploading"
+        (change)="handleFileChange($event)"
+      />
+      <span *ngIf="!uploading">選擇圖片</span>
+      <span *ngIf="uploading">上傳中...</span>
+    </label>
+
+    <button
+      type="button"
+      class="image-upload__clear"
+      (click)="clear()"
+      [disabled]="disabled || uploading || !value"
+    >
+      移除
+    </button>
+  </div>
+
+  <div class="image-upload__error" *ngIf="error">{{ error }}</div>
+</div>

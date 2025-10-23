@@ -28,3 +28,4 @@ export * from './confirm-dialog/cs-confirm-dialog.component';
 export * from './spinner/cs-spinner.component';
 export * from './skeleton/cs-skeleton.component';
 export * from './empty-state/cs-empty-state.component';
+export * from './image-upload/cs-image-upload.component';

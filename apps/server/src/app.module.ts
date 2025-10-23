@@ -19,6 +19,7 @@ import { LoginLogService } from './login-log/login-log.service';
 import { PageController } from './page/page.controller';
 import { PageService } from './page/page.service';
 import { PagePublicController } from './public/page-public.controller';
+import { UploadController } from './public/upload.controller';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PagePublicController } from './public/page-public.controller';
     LoginLogController,
     PageController,
     PagePublicController,
+    UploadController,
     StatusController,
   ],
   providers: [

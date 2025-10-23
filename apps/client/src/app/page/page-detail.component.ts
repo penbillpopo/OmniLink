@@ -6,7 +6,13 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
   PageBlockDto,
@@ -22,6 +28,7 @@ import {
   CsSpinnerComponent,
   CsTextareaComponent,
 } from '../component';
+import { PageContentFormComponent } from './page-content-form.component';
 import { PageDataService } from './page-data.service';
 import { Subscription } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -39,6 +46,7 @@ import { environment } from '../../environments/environment';
     CsTextareaComponent,
     CsSpinnerComponent,
     CsAlertComponent,
+    PageContentFormComponent,
   ],
   templateUrl: './page-detail.component.html',
   styleUrl: './page-detail.component.scss',
@@ -59,15 +67,17 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     { value: 'image_text', label: '圖片與文字' },
   ] as const;
 
+
   public readonly blockForm = this._formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(64)]],
     type: ['carousel', Validators.required],
-    imageUrls: [''],
-    imageUrl: [''],
-    link: [''],
-    title: [''],
-    description: [''],
-    text: [''],
+    carouselItems: this._formBuilder.nonNullable.array([
+      this._createCarouselGroup(),
+    ]),
+    banner: this._createBannerGroup(),
+    imageTextItems: this._formBuilder.nonNullable.array([
+      this._createImageTextGroup(),
+    ]),
   });
 
   private readonly _routeSub = this._route.paramMap.subscribe((params) => {
@@ -93,19 +103,12 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     this._typeSub = this.blockForm
       .get('type')
       ?.valueChanges.subscribe(() => {
-        this.blockForm.patchValue(
-          {
-            imageUrls: '',
-            imageUrl: '',
-            link: '',
-            title: '',
-            description: '',
-            text: '',
-          },
-          { emitEvent: false },
-        );
+        this._resetDynamicGroups();
+        this.createBlockError = null;
         this._cdr.markForCheck();
       });
+
+    this._resetDynamicGroups(this.blockForm.get('type')?.value as PageBlockDto['type']);
   }
 
   public ngOnDestroy(): void {
@@ -156,9 +159,15 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     const content = this._buildContent(type);
 
     if (type === 'carousel') {
-      const images = (content?.['images'] as string[] | undefined) ?? [];
-      if (!images.length) {
-        this.createBlockError = '請至少輸入一張輪播圖的圖片網址';
+      const items = (content?.['items'] as any[]) ?? [];
+      if (!items.length) {
+        this.createBlockError = '請至少新增一個輪播圖項目';
+        this._cdr.markForCheck();
+        return;
+      }
+      const invalid = items.some((item) => !item.imageUrl);
+      if (invalid) {
+        this.createBlockError = '輪播圖項目需要提供圖片網址';
         this._cdr.markForCheck();
         return;
       }
@@ -174,10 +183,17 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     }
 
     if (type === 'image_text') {
-      const imageUrl = (content?.['imageUrl'] as string | null) ?? '';
-      const text = (content?.['text'] as string | null) ?? '';
-      if (!imageUrl || !text) {
-        this.createBlockError = '圖片與文字區塊需要圖片與內文字內容';
+      const items = (content?.['items'] as any[]) ?? [];
+      if (!items.length) {
+        this.createBlockError = '請新增至少一個圖片與文字項目';
+        this._cdr.markForCheck();
+        return;
+      }
+      const invalid = items.some((item) =>
+        this._isImageTextItemInvalid(item.layout, item.imageUrl, item.text),
+      );
+      if (invalid) {
+        this.createBlockError = '請確認圖片或文字欄位已依版型填寫完整';
         this._cdr.markForCheck();
         return;
       }
@@ -207,13 +223,14 @@ export class PageDetailComponent implements OnInit, OnDestroy {
       this.blockForm.reset({
         name: '',
         type,
-        imageUrls: '',
-        imageUrl: '',
-        link: '',
-        title: '',
-        description: '',
-        text: '',
+        carouselItems: undefined,
+        banner: undefined,
+        imageTextItems: undefined,
       });
+      this.blockForm.patchValue({ type });
+      this._resetDynamicGroups(type);
+      this.blockForm.markAsPristine();
+      this.blockForm.markAsUntouched();
     } catch (error) {
       console.error('Failed to create block', error);
       this.createBlockError = this._resolveError(error);
@@ -238,36 +255,139 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   }
 
   private _buildContent(type: PageBlockDto['type']): Record<string, unknown> | null {
-    const raw = this.blockForm.getRawValue();
-
     switch (type) {
       case 'carousel': {
-        const images = raw.imageUrls
-          ?.split('\n')
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0);
-        return images?.length ? { images } : null;
+        const items = this.carouselItems.controls
+          .map((group) => group.getRawValue())
+          .map(({ imageUrl, link, caption }) => ({
+            imageUrl: imageUrl?.trim() || null,
+            link: link?.trim() || null,
+            caption: caption?.trim() || null,
+          }))
+          .filter((item) => item.imageUrl);
+        return { items };
       }
 
       case 'banner': {
+        const raw = this.banner.value;
         return {
           imageUrl: raw.imageUrl?.trim() || null,
           link: raw.link?.trim() || null,
+          caption: raw.caption?.trim() || null,
         };
       }
 
       case 'image_text': {
-        return {
-          imageUrl: raw.imageUrl?.trim() || null,
-          title: raw.title?.trim() || null,
-          description: raw.description?.trim() || null,
-          text: raw.text?.trim() || null,
-        };
+        const items = this.imageTextItems.controls
+          .map((group) => group.getRawValue())
+          .map(({ layout, imageUrl, title, description, text }) => ({
+            layout,
+            imageUrl: imageUrl?.trim() || null,
+            title: title?.trim() || null,
+            description: description?.trim() || null,
+            text: text?.trim() || null,
+          }));
+        return { items };
       }
 
       default:
         return null;
     }
+  }
+
+  private _isImageTextItemInvalid(
+    layout: string,
+    imageUrl?: string | null,
+    text?: string | null,
+  ): boolean {
+    switch (layout) {
+      case 'image_only':
+        return !(imageUrl && imageUrl.trim().length);
+
+      case 'text_only':
+        return !(text && text.trim().length);
+
+      default:
+        return !(
+          imageUrl && imageUrl.trim().length && text && text.trim().length
+        );
+    }
+  }
+
+  private _resetDynamicGroups(
+    type: PageBlockDto['type'] = (this.blockForm.get('type')?.value ?? 'carousel') as PageBlockDto['type'],
+  ) {
+    this.carouselItems.clear();
+    this.imageTextItems.clear();
+    this.blockForm.setControl('banner', this._createBannerGroup());
+
+    if (type === 'carousel') {
+      this.carouselItems.push(this._createCarouselGroup());
+    }
+
+    if (type === 'image_text') {
+      this.imageTextItems.push(this._createImageTextGroup());
+    }
+  }
+
+  public get carouselItems(): FormArray<FormGroup> {
+    return this.blockForm.get('carouselItems') as FormArray<FormGroup>;
+  }
+
+  public get banner(): FormGroup {
+    return this.blockForm.get('banner') as FormGroup;
+  }
+
+  public get imageTextItems(): FormArray<FormGroup> {
+    return this.blockForm.get('imageTextItems') as FormArray<FormGroup>;
+  }
+
+  public addCarouselItem(): void {
+    this.carouselItems.push(this._createCarouselGroup());
+    this._cdr.markForCheck();
+  }
+
+  public removeCarouselItem(index: number): void {
+    if (this.carouselItems.length <= 1) return;
+    this.carouselItems.removeAt(index);
+    this._cdr.markForCheck();
+  }
+
+  public addImageTextItem(): void {
+    this.imageTextItems.push(this._createImageTextGroup());
+    this._cdr.markForCheck();
+  }
+
+  public removeImageTextItem(index: number): void {
+    if (this.imageTextItems.length <= 1) return;
+    this.imageTextItems.removeAt(index);
+    this._cdr.markForCheck();
+  }
+
+  private _createCarouselGroup(): FormGroup {
+    return this._formBuilder.nonNullable.group({
+      imageUrl: ['', Validators.required],
+      link: [''],
+      caption: [''],
+    });
+  }
+
+  private _createBannerGroup(): FormGroup {
+    return this._formBuilder.nonNullable.group({
+      imageUrl: ['', Validators.required],
+      link: [''],
+      caption: [''],
+    });
+  }
+
+  private _createImageTextGroup(): FormGroup {
+    return this._formBuilder.nonNullable.group({
+      layout: ['image_only', Validators.required],
+      imageUrl: [''],
+      title: [''],
+      description: [''],
+      text: [''],
+    });
   }
 
   private _resolveError(error: unknown): string {
