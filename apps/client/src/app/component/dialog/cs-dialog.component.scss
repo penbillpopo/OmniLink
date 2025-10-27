@@ -1,3 +1,7 @@
+:host {
+  display: contents;
+}
+
 .cs-dialog__backdrop {
   position: fixed;
   inset: 0;
@@ -9,7 +13,7 @@
   z-index: 1000;
 }
 
-.cs-dialog {
+.cs-dialog__panel {
   width: min(520px, 100%);
   background: #ffffff;
   border-radius: 24px;
@@ -17,6 +21,19 @@
   display: flex;
   flex-direction: column;
   max-height: 90vh;
+  overflow: hidden;
+}
+
+.cs-dialog__panel--sm {
+  max-width: 420px;
+}
+
+.cs-dialog__panel--md {
+  max-width: 520px;
+}
+
+.cs-dialog__panel--lg {
+  max-width: 760px;
 }
 
 .cs-dialog__header {
@@ -53,7 +70,7 @@
     padding: 1rem;
   }
 
-  .cs-dialog {
+  .cs-dialog__panel {
     border-radius: 16px;
   }
 }

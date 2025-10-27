@@ -17,51 +17,13 @@
 
     <section class="page-card">
       <header class="page-card__header">
-        <h2>新增區塊</h2>
-      </header>
-      <div class="page-card__body">
-        <cs-form [formGroup]="blockForm" (submitted)="submitBlock()">
-          <cs-input
-            formControlName="name"
-            label="區塊名稱"
-            placeholder="例如：首頁輪播"
-            [required]="true"
-            [errors]="{ required: '請輸入區塊名稱', maxlength: '最多 64 字' }"
-          ></cs-input>
-
-          <cs-select
-            formControlName="type"
-            label="區塊類型"
-            [options]="blockTypes"
-            [required]="true"
-          ></cs-select>
-
-          <cs-page-content-form
-            [form]="blockForm"
-            [blockType]="blockForm.get('type')?.value"
-            (addCarousel)="addCarouselItem()"
-            (removeCarousel)="removeCarouselItem($event)"
-            (addImageText)="addImageTextItem()"
-            (removeImageText)="removeImageTextItem($event)"
-          ></cs-page-content-form>
-
-          <div class="page-card__actions">
-            <cs-button variant="primary" type="submit" [loading]="creatingBlock">
-              新增區塊
-            </cs-button>
-          </div>
-        </cs-form>
-
-        <cs-alert variant="error" *ngIf="createBlockError">
-          {{ createBlockError }}
-        </cs-alert>
-      </div>
-    </section>
-
-    <section class="page-card">
-      <header class="page-card__header">
-        <h2>區塊列表</h2>
-        <span class="page-card__meta">共 {{ blocks.length }} 個</span>
+        <div>
+          <h2>區塊列表</h2>
+          <span class="page-card__meta">共 {{ blocks.length }} 個</span>
+        </div>
+        <cs-button variant="ghost" type="button" (click)="openCreateDialog()">
+          新增區塊
+        </cs-button>
       </header>
 
       <div class="page-card__body">
@@ -71,26 +33,144 @@
 
         <ul class="block-list" *ngIf="blocks.length">
           <li class="block-list__item" *ngFor="let block of blocks; trackBy: trackByBlock">
-            <div class="block-list__header">
-              <div>
-                <h3>{{ block.name }}</h3>
-                <p>類型：{{ block.type }}</p>
+            <div class="block-list__main">
+              <div class="block-list__preview" *ngIf="blockPreviewUrl(block); else noPreviewTpl">
+                <img [src]="blockPreviewUrl(block)" [alt]="block.name" />
               </div>
-              <span class="block-list__order">排序 #{{ block.order }}</span>
-              <cs-button
-                variant="text"
-                type="button"
-                class="block-list__remove"
-                (click)="removeBlock(block)"
-              >
-                移除
-              </cs-button>
+              <ng-template #noPreviewTpl>
+                <div class="block-list__preview block-list__preview--empty">
+                  <span>無預覽</span>
+                </div>
+              </ng-template>
+
+              <div class="block-list__info">
+                <div class="block-list__header">
+                  <div>
+                    <h3>{{ block.name }}</h3>
+                    <p>類型：{{ blockTypeLabel(block.type) }}</p>
+                  </div>
+                  <div class="block-list__meta">
+                    <span class="block-list__order">排序 #{{ block.order }}</span>
+                  </div>
+                </div>
+
+                <p class="block-list__summary">
+                  {{ blockSummary(block) }}
+                </p>
+
+                <div class="block-list__actions">
+                  <cs-button variant="ghost" type="button" (click)="openBlockDetail(block)">
+                    檢視內容
+                  </cs-button>
+                  <cs-button
+                    variant="text"
+                    type="button"
+                    class="block-list__remove"
+                    (click)="removeBlock(block)"
+                  >
+                    移除
+                  </cs-button>
+                </div>
+              </div>
             </div>
-            <pre class="block-list__content">{{ formatContent(block) }}</pre>
           </li>
         </ul>
       </div>
     </section>
+
+    <cs-dialog
+      [open]="showCreateDialog"
+      title="新增區塊"
+      size="lg"
+      [closeOnBackdrop]="!creatingBlock"
+      (openChange)="handleDialogOpenChange($event)"
+    >
+      <cs-form [formGroup]="blockForm" (submitted)="submitBlock()">
+        <cs-input
+          formControlName="name"
+          label="區塊名稱"
+          placeholder="例如：首頁輪播"
+          [required]="true"
+          [errors]="{ required: '請輸入區塊名稱', maxlength: '最多 64 字' }"
+        ></cs-input>
+
+        <cs-select
+          formControlName="type"
+          label="區塊類型"
+          [options]="blockTypes"
+          [required]="true"
+        ></cs-select>
+
+        <cs-page-content-form
+          [form]="blockForm"
+          [blockType]="blockForm.get('type')?.value"
+          (addCarousel)="addCarouselItem()"
+          (removeCarousel)="removeCarouselItem($event)"
+          (addImageText)="addImageTextItem()"
+          (removeImageText)="removeImageTextItem($event)"
+        ></cs-page-content-form>
+
+        <cs-alert variant="error" *ngIf="createBlockError">
+          {{ createBlockError }}
+        </cs-alert>
+
+        <div class="page-card__actions" csDialogActions>
+          <cs-button
+            variant="ghost"
+            type="button"
+            (click)="cancelCreateBlock()"
+            [disabled]="creatingBlock"
+          >
+            取消
+          </cs-button>
+          <cs-button variant="primary" type="submit" [loading]="creatingBlock">
+            新增區塊
+          </cs-button>
+        </div>
+      </cs-form>
+    </cs-dialog>
+
+    <cs-dialog
+      [open]="detailDialogOpen"
+      [title]="detailBlock?.name || '區塊詳情'"
+      size="lg"
+      (openChange)="handleDetailDialogOpenChange($event)"
+      (closed)="closeBlockDetail()"
+    >
+      <ng-container *ngIf="detailBlock as block">
+        <section class="block-detail">
+          <div class="block-detail__preview" *ngIf="blockPreviewUrl(block)">
+            <img [src]="blockPreviewUrl(block)" [alt]="block.name" />
+          </div>
+
+          <dl class="block-detail__meta">
+            <div>
+              <dt>類型</dt>
+              <dd>{{ blockTypeLabel(block.type) }}</dd>
+            </div>
+            <div>
+              <dt>排序</dt>
+              <dd>#{{ block.order }}</dd>
+            </div>
+            <div>
+              <dt>概述</dt>
+              <dd>{{ blockSummary(block) }}</dd>
+            </div>
+          </dl>
+
+          <div class="block-detail__raw">
+            <h3>完整內容 (JSON)</h3>
+            <pre>{{ formatContent(block) }}</pre>
+          </div>
+        </section>
+      </ng-container>
+
+      <div csDialogActions>
+        <cs-button variant="primary" type="button" (click)="closeBlockDetail()">
+          關閉
+        </cs-button>
+      </div>
+    </cs-dialog>
   </ng-container>
 </section>
 

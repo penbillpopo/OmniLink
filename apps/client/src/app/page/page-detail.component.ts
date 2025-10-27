@@ -28,11 +28,13 @@ import {
   CsSelectComponent,
   CsSpinnerComponent,
   CsTextareaComponent,
+  CsDialogComponent,
 } from '../component';
 import { PageContentFormComponent } from './page-content-form.component';
 import { PageDataService } from './page-data.service';
 import { Subscription } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { UploadService } from '../shared/upload.service';
 
 @Component({
   selector: 'cs-page-detail',
@@ -48,6 +50,7 @@ import { environment } from '../../environments/environment';
     CsTextareaComponent,
     CsSpinnerComponent,
     CsAlertComponent,
+    CsDialogComponent,
     PageContentFormComponent,
   ],
   templateUrl: './page-detail.component.html',
@@ -63,6 +66,9 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   public createBlockError: string | null = null;
   public apiEndpoint = '';
   public toast: { type: 'success' | 'error'; message: string } | null = null;
+  public showCreateDialog = false;
+  public detailDialogOpen = false;
+  public detailBlock: PageBlockDto | null = null;
 
   public readonly blockTypes = [
     { value: 'carousel', label: '輪播圖' },
@@ -100,6 +106,7 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     private readonly _route: ActivatedRoute,
     private readonly _formBuilder: FormBuilder,
     private readonly _cdr: ChangeDetectorRef,
+    private readonly _uploadService: UploadService,
   ) {}
 
   public ngOnInit(): void {
@@ -229,18 +236,9 @@ export class PageDetailComponent implements OnInit, OnDestroy {
         blocks: sortedBlocks,
       });
       this.apiEndpoint = this._buildApiEndpoint(this.page);
-      this.blockForm.reset({
-        name: '',
-        type,
-        carouselItems: undefined,
-        banner: undefined,
-        imageTextItems: undefined,
-      });
-      this.blockForm.patchValue({ type });
-      this._resetDynamicGroups(type);
-      this.blockForm.markAsPristine();
-      this.blockForm.markAsUntouched();
       this.toast = { type: 'success', message: '區塊已新增' };
+      this.showCreateDialog = false;
+      this._resetCreateFormState(type);
     } catch (error) {
       console.error('Failed to create block', error);
       this.createBlockError = this._resolveError(error);
@@ -249,6 +247,50 @@ export class PageDetailComponent implements OnInit, OnDestroy {
       this.creatingBlock = false;
       this._cdr.markForCheck();
     }
+  }
+
+  public openCreateDialog(): void {
+    this._resetCreateFormState();
+    this.showCreateDialog = true;
+    this._cdr.markForCheck();
+  }
+
+  public handleDialogOpenChange(open: boolean): void {
+    this.showCreateDialog = open;
+    if (!open) {
+      this._resetCreateFormState();
+    }
+    this._cdr.markForCheck();
+  }
+
+  public cancelCreateBlock(): void {
+    if (this.creatingBlock) {
+      return;
+    }
+    this.showCreateDialog = false;
+    this._resetCreateFormState();
+    this._cdr.markForCheck();
+  }
+
+  public openBlockDetail(block: PageBlockDto): void {
+    this.detailBlock = block;
+    this.detailDialogOpen = true;
+    this.createBlockError = null;
+    this._cdr.markForCheck();
+  }
+
+  public handleDetailDialogOpenChange(open: boolean): void {
+    this.detailDialogOpen = open;
+    if (!open) {
+      this.detailBlock = null;
+    }
+    this._cdr.markForCheck();
+  }
+
+  public closeBlockDetail(): void {
+    this.detailDialogOpen = false;
+    this.detailBlock = null;
+    this._cdr.markForCheck();
   }
 
   public async removeBlock(block: PageBlockDto): Promise<void> {
@@ -262,6 +304,9 @@ export class PageDetailComponent implements OnInit, OnDestroy {
         ...this.page,
         blocks: (this.page?.blocks ?? []).filter((item) => item.id !== block.id),
       });
+      if (this.detailBlock?.id === block.id) {
+        this.closeBlockDetail();
+      }
       this.toast = { type: 'success', message: '區塊已刪除' };
     } catch (error) {
       console.error('Failed to delete block', error);
@@ -283,6 +328,82 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     } catch {
       return block.content.toString();
     }
+  }
+
+  public blockTypeLabel(type: PageBlockDto['type']): string {
+    switch (type) {
+      case 'carousel':
+        return '輪播圖';
+      case 'banner':
+        return 'Banner 圖';
+      case 'image_text':
+        return '圖片與文字';
+      default:
+        return type;
+    }
+  }
+
+  public blockSummary(block: PageBlockDto): string {
+    const content = block.content as any;
+    switch (block.type) {
+      case 'carousel': {
+        const items = content?.items ?? [];
+        const count = Array.isArray(items) ? items.length : 0;
+        if (!count) {
+          return '尚未設定輪播項目';
+        }
+        return `包含 ${count} 張輪播圖`;
+      }
+
+      case 'banner': {
+        const imageUrl = content?.imageUrl;
+        if (!imageUrl) {
+          return '尚未設定 Banner 圖片';
+        }
+        return content?.caption?.trim()
+          ? `Banner：${content.caption.trim()}`
+          : '已設定 Banner 圖片';
+      }
+
+      case 'image_text': {
+        const items = content?.items ?? [];
+        const count = Array.isArray(items) ? items.length : 0;
+        if (!count) {
+          return '尚未設定圖文項目';
+        }
+        const firstTitle = items.find((item: any) => item?.title)?.title;
+        if (firstTitle) {
+          return `共 ${count} 組圖文 · 首項：${firstTitle}`;
+        }
+        return `共 ${count} 組圖文`;
+      }
+
+      default:
+        return '尚未設定內容';
+    }
+  }
+
+  public blockPreviewUrl(block: PageBlockDto): string | null {
+    const content = block.content as any;
+    if (!content) {
+      return null;
+    }
+
+    if (block.type === 'carousel') {
+      const item = content.items?.find((entry: any) => entry?.imageUrl);
+      return this._uploadService.resolveUrl(item?.imageUrl ?? null);
+    }
+
+    if (block.type === 'banner') {
+      return this._uploadService.resolveUrl(content.imageUrl ?? null);
+    }
+
+    if (block.type === 'image_text') {
+      const item = content.items?.find((entry: any) => entry?.imageUrl);
+      return this._uploadService.resolveUrl(item?.imageUrl ?? null);
+    }
+
+    return null;
   }
 
   private _buildContent(type: PageBlockDto['type']): Record<string, unknown> | null {
@@ -464,6 +585,19 @@ export class PageDetailComponent implements OnInit, OnDestroy {
       return `${this._apiBase}/api/{slug}`;
     }
     return `${this._apiBase}/api/${slug}`;
+  }
+
+  private _resetCreateFormState(
+    type: PageBlockDto['type'] = 'carousel',
+  ): void {
+    this.blockForm.reset({
+      name: '',
+      type,
+    });
+    this._resetDynamicGroups(type);
+    this.blockForm.markAsPristine();
+    this.blockForm.markAsUntouched();
+    this.createBlockError = null;
   }
 
   private static _normalizeServerUrl(url?: string): string {

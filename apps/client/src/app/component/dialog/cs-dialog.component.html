@@ -1,8 +1,8 @@
 <ng-container *ngIf="open">
   <div class="cs-dialog__backdrop" (click)="close('backdrop')">
-    <div class="cs-dialog" (click)="stopPropagation($event)">
-      <header class="cs-dialog__header" *ngIf="title || true">
-        <h2 class="cs-dialog__title" *ngIf="title">{{ title }}</h2>
+    <div class="cs-dialog__panel" [ngClass]="panelClasses" (click)="stopPropagation($event)">
+      <header class="cs-dialog__header" *ngIf="title">
+        <h2 class="cs-dialog__title">{{ title }}</h2>
         <cs-icon-button
           ariaLabel="Close dialog"
           variant="ghost"
