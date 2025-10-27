@@ -1,0 +1,174 @@
+<section class="page-components">
+  <header class="page-components__header">
+    <div>
+      <h1>頁面組件</h1>
+      <p>集中管理常用頁面模組，建立一致且可重複利用的內容體驗。</p>
+    </div>
+
+    <cs-button variant="primary" type="button" (click)="openCreateDialog()">
+      新增組件
+    </cs-button>
+  </header>
+
+  <section class="page-card">
+    <header class="page-card__header">
+      <div>
+        <h2>組件列表</h2>
+        <span class="page-card__meta">共 {{ components.length }} 個</span>
+      </div>
+    </header>
+
+    <div class="page-card__body">
+      <cs-alert variant="error" *ngIf="error">
+        {{ error }}
+      </cs-alert>
+
+      <div class="page-card__state" *ngIf="loading">
+        <cs-spinner size="md"></cs-spinner>
+        <span>載入中...</span>
+      </div>
+
+      <cs-empty-state
+        *ngIf="!loading && !components.length && !error"
+        title="尚未建立任何組件"
+        description="點擊右上方的新增組件，為頁面快速組裝重複使用的內容模組。"
+      ></cs-empty-state>
+
+      <ul class="component-list" *ngIf="!loading && components.length">
+        <li
+          class="component-list__item"
+          *ngFor="let component of components; trackBy: trackByComponent"
+        >
+          <div class="component-list__info">
+            <div class="component-list__headline">
+              <div class="component-list__title">
+                <h3>{{ component.name }}</h3>
+                <span class="component-list__updated">
+                  更新於 {{ component.updatedAt | date: 'yyyy/MM/dd HH:mm' }}
+                </span>
+              </div>
+              <div class="component-list__spacer"></div>
+              <cs-button
+                variant="ghost"
+                type="button"
+                (click)="openEditDialog(component)"
+              >
+                編輯
+              </cs-button>
+            </div>
+
+            <p class="component-list__description" *ngIf="component.description">
+              {{ component.description }}
+            </p>
+
+            <div class="component-list__meta">
+              <span class="component-list__count">{{ component.fields.length }} 個欄位</span>
+            </div>
+
+            <ul class="component-fields">
+              <li class="component-fields__item" *ngFor="let field of component.fields">
+                <span class="component-fields__key">{{ field.key }}</span>
+                <span class="component-fields__type">
+                  {{ fieldTypeLabel(field.type) }}
+                  <ng-container *ngIf="field.type === 'property' && field.property">
+                    ：{{ field.property }}
+                  </ng-container>
+                </span>
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+</section>
+
+<cs-dialog
+  [open]="dialogOpen"
+  [title]="editingComponent ? '編輯頁面組件' : '新增頁面組件'"
+  size="lg"
+  (openChange)="handleDialogOpenChange($event)"
+>
+  <cs-form [formGroup]="componentForm" (submitted)="submitComponent()">
+    <cs-input
+      formControlName="name"
+      label="組件名稱"
+      placeholder="例如：Hero Banner"
+      [required]="true"
+      [errors]="{ required: '請輸入組件名稱', maxlength: '最多 64 字' }"
+    ></cs-input>
+
+    <cs-input
+      formControlName="description"
+      label="描述"
+      placeholder="補充此組件用途或使用情境"
+      [errors]="{ maxlength: '最多 255 字' }"
+    ></cs-input>
+
+    <section class="fields-section" formArrayName="fields">
+      <header class="fields-section__header">
+        <h3>欄位設定</h3>
+        <cs-button variant="ghost" type="button" (click)="addField()">新增欄位</cs-button>
+      </header>
+
+      <div class="fields-section__list">
+        <div
+          class="field-row"
+          *ngFor="let fieldGroup of fields.controls; let i = index; trackBy: trackByField"
+          [formGroupName]="i"
+        >
+          <div class="field-row__main">
+            <cs-input
+              formControlName="key"
+              label="欄位 Key"
+              placeholder="例如：title"
+              [required]="true"
+              [errors]="{ required: '請輸入欄位 key', maxlength: '最多 64 字' }"
+            ></cs-input>
+
+            <cs-select
+              formControlName="type"
+              label="欄位類型"
+              [options]="fieldTypeOptions"
+              [required]="true"
+            ></cs-select>
+          </div>
+
+          <cs-input
+            *ngIf="fieldGroup.get('type')?.value === 'property'"
+            formControlName="property"
+            label="屬性清單"
+            placeholder="例如：icon,title,description"
+            supportingText="屬性請用逗號隔開"
+            [required]="true"
+            [errors]="{ required: '請輸入屬性清單' }"
+          ></cs-input>
+
+          <div class="field-row__actions">
+            <cs-button
+              variant="text"
+              type="button"
+              (click)="removeField(i)"
+              [disabled]="fields.length === 1"
+            >
+              移除
+            </cs-button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <cs-alert variant="error" *ngIf="createError">
+      {{ createError }}
+    </cs-alert>
+
+    <div class="dialog-actions" csDialogActions>
+      <cs-button variant="ghost" type="button" (click)="closeDialog()" [disabled]="creating">
+        取消
+      </cs-button>
+      <cs-button variant="primary" type="submit" [loading]="creating">
+        {{ editingComponent ? '更新組件' : '建立組件' }}
+      </cs-button>
+    </div>
+  </cs-form>
+</cs-dialog>

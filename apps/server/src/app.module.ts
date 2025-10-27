@@ -17,6 +17,8 @@ import { AuditService } from './audit/audit.service';
 import { LoginLogController } from './login-log/login-log.controller';
 import { LoginLogService } from './login-log/login-log.service';
 import { PageController } from './page/page.controller';
+import { PageComponentController } from './page-component/page-component.controller';
+import { PageComponentService } from './page-component/page-component.service';
 import { PageService } from './page/page.service';
 import { PagePublicController } from './public/page-public.controller';
 import { UploadController } from './public/upload.controller';
@@ -34,6 +36,7 @@ import { UploadController } from './public/upload.controller';
     RoleController,
     LoginLogController,
     PageController,
+    PageComponentController,
     PagePublicController,
     UploadController,
     StatusController,
@@ -44,6 +47,7 @@ import { UploadController } from './public/upload.controller';
     AccountHelperService,
     AuditService,
     LoginLogService,
+    PageComponentService,
     PageService,
     RoleService,
     Provider.str('SERVER_JWT_KEY'),

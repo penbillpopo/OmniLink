@@ -25,6 +25,17 @@ import { CreatePageBlockDto } from './page/dto/create-page-block.dto';
 import { PageDto } from './page/dto/page.dto';
 import { PageDetailDto } from './page/dto/page-detail.dto';
 import { PageModel } from './page/model';
+import {
+  PageComponentFieldDto,
+  PageComponentFieldType,
+} from './page-component/dto/page-component-field.dto';
+import { CreatePageComponentFieldDto } from './page-component/dto/create-page-component-field.dto';
+import { CreatePageComponentDto } from './page-component/dto/create-page-component.dto';
+import { PageComponentDto } from './page-component/dto/page-component.dto';
+import { PageComponentDetailDto } from './page-component/dto/page-component-detail.dto';
+import { UpdatePageComponentDto } from './page-component/dto/update-page-component.dto';
+import { PageComponentModel } from './page-component/model';
+import { PublicModel } from './public/model';
 
 export {
   wsc,
@@ -52,5 +63,14 @@ export {
   PageDto,
   PageDetailDto,
   PageModel,
+  PageComponentFieldDto,
+  PageComponentFieldType,
+  CreatePageComponentFieldDto,
+  CreatePageComponentDto,
+  PageComponentDto,
+  PageComponentDetailDto,
+  UpdatePageComponentDto,
+  PageComponentModel,
+  PublicModel,
 };
-// 15af9644484e60ac9fae6e79a6ffed395471fb558230b85f8a24822451f68404
+// c26957afd4e0f81da424c32e3b9110554006e70e5a72089f88a60504b3e396ed

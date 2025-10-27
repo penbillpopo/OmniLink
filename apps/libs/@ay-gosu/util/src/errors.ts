@@ -13,6 +13,8 @@ export const Errors = {
   PAGE_NOT_FOUND: _('查無此頁面'),
   PAGE_BLOCK_NOT_FOUND: _('查無此頁面區塊'),
   INVALID_BLOCK_TYPE: _('無效的區塊類型'),
+  PAGE_COMPONENT_EXIST: _('頁面組件已存在'),
+  PAGE_COMPONENT_NOT_FOUND: _('查無此頁面組件'),
 };
 
 Object.keys(Errors).map((key) => (Errors[key].code = key));

@@ -202,6 +202,7 @@ export class ShellComponent implements OnInit, OnDestroy {
       icon: 'fa-layer-group',
       children: [
         { label: '頁面架構', route: '/app/pages/structure' },
+        { label: '頁面組件', route: '/app/pages/components' },
         ...pages.map((page) => ({
           label: page.name,
           route: `/app/pages/${page.id}`,

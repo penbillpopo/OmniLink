@@ -6,6 +6,7 @@ import { loadAccount } from './account/router';
 import { loadAudit } from './audit/router';
 import { loadLoginLog } from './login-log/router';
 import { loadPage } from './page/router';
+import { loadPageComponent } from './page-component/router';
 import { loadPublic } from './public/router';
 import { loadRole } from './role/router';
 import { loadStatus } from './status/router';
@@ -17,8 +18,9 @@ export function loadModules() {
   loadAudit();
   loadLoginLog();
   loadPage();
+  loadPageComponent();
   loadPublic();
   loadRole();
   loadStatus();
 }
-// 7310673a679c82c9e09bd186202517f38b197256329d6eb102092a1c0b6ec9b3
+// a30b75c341924fe95d56956b10f53e0aa3f5a2a824c2441ffc18eea6efefc9ad
