@@ -1,4 +1,4 @@
-export type PageBlockType = 'carousel' | 'banner' | 'image_text';
+export type PageBlockType = 'carousel' | 'banner' | 'image_text' | 'component';
 
 export class PageBlockDto {
   public id: number;

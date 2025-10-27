@@ -1,4 +1,9 @@
-import { Page, PageBlock } from '@ay-gosu/sequelize-models';
+import {
+  Page,
+  PageBlock,
+  PageComponent,
+  PageComponentField,
+} from '@ay-gosu/sequelize-models';
 import { Errors } from '@ay-gosu/util/errors';
 import { Injectable } from '@nestjs/common';
 import { Op, Transaction } from 'sequelize';
@@ -11,7 +16,14 @@ import { PageBlockDto, PageBlockType } from './dto/page-block.dto';
 import { PageDetailDto } from './dto/page-detail.dto';
 import { PageDto } from './dto/page.dto';
 
-const PAGE_BLOCK_TYPES: PageBlockType[] = ['carousel', 'banner', 'image_text'];
+type InternalBlockType = 'carousel' | 'banner' | 'image_text' | 'component';
+
+const PAGE_BLOCK_TYPES: InternalBlockType[] = [
+  'carousel',
+  'banner',
+  'image_text',
+  'component',
+];
 
 @Injectable()
 export class PageService {
@@ -117,6 +129,7 @@ export class PageService {
     }
 
     const type = this._normalizeBlockType(payload?.type);
+    const content = await this._sanitizeBlockContent(type, payload?.content);
 
     const order = await this._getNextBlockOrder(page.id);
 
@@ -124,7 +137,7 @@ export class PageService {
       pageId: page.id,
       name,
       type,
-      content: payload?.content ?? null,
+      content,
       order,
     });
 
@@ -223,7 +236,7 @@ export class PageService {
       id: plain.id,
       pageId: plain.pageId,
       name: plain.name,
-      type: this._normalizeBlockType(plain.type),
+      type: this._normalizeBlockType(plain.type) as unknown as PageBlockDto['type'],
       content:
         plain.content && typeof plain.content === 'object'
           ? plain.content
@@ -254,12 +267,144 @@ export class PageService {
     return name.trim();
   }
 
-  private _normalizeBlockType(type?: string | null): PageBlockType {
+  private _normalizeBlockType(type?: string | null): InternalBlockType {
     const normalized = (type ?? '').toLowerCase().trim();
-    if (PAGE_BLOCK_TYPES.includes(normalized as PageBlockType)) {
-      return normalized as PageBlockType;
+    if (PAGE_BLOCK_TYPES.includes(normalized as InternalBlockType)) {
+      return normalized as InternalBlockType;
     }
     throw new Errors.INVALID_BLOCK_TYPE();
+  }
+
+  private async _sanitizeBlockContent(
+    type: InternalBlockType,
+    content?: Record<string, unknown> | null,
+  ): Promise<Record<string, unknown> | null> {
+    if (type === 'component') {
+      return this._sanitizeComponentContent(content);
+    }
+
+    if (!content || typeof content !== 'object') {
+      return null;
+    }
+
+    return content;
+  }
+
+  private async _sanitizeComponentContent(
+    content?: Record<string, unknown> | null,
+  ): Promise<Record<string, unknown>> {
+    if (!content || typeof content !== 'object') {
+      throw new Errors.UPDATE_FAILED('請提供頁面組件內容');
+    }
+
+    const componentIdRaw = (content as any)?.componentId;
+    const componentId = Number(componentIdRaw);
+    if (!componentId || Number.isNaN(componentId)) {
+      throw new Errors.UPDATE_FAILED('請選擇頁面組件');
+    }
+
+    const component = await PageComponent.findByPk(componentId, {
+      include: [
+        {
+          model: PageComponentField,
+          as: 'fields',
+        },
+      ],
+      order: [[{ model: PageComponentField, as: 'fields' }, 'order', 'ASC']],
+    });
+
+    if (!component) {
+      throw new Errors.PAGE_COMPONENT_NOT_FOUND();
+    }
+
+    const values = (content as any)?.values;
+    if (!values || typeof values !== 'object') {
+      throw new Errors.UPDATE_FAILED('請提供組件欄位內容');
+    }
+
+    const sanitizedValues: Record<string, unknown> = {};
+    const fields = component.fields ?? [];
+
+    for (const field of fields) {
+      const rawValue = (values as any)[field.key];
+      if (field.type === 'property') {
+        sanitizedValues[field.key] = this._sanitizeComponentPropertyValue(
+          field,
+          rawValue,
+        );
+      } else {
+        sanitizedValues[field.key] = this._sanitizeComponentScalarValue(
+          field,
+          rawValue,
+        );
+      }
+    }
+
+    return {
+      componentId: component.id,
+      values: sanitizedValues,
+    };
+  }
+
+  private _sanitizeComponentScalarValue(
+    field: PageComponentField,
+    value: unknown,
+  ): string | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const stringValue = String(value);
+
+    if (field.type === 'richtext') {
+      return stringValue.length ? stringValue : null;
+    }
+
+    const trimmed = stringValue.trim();
+    return trimmed.length ? trimmed : null;
+  }
+
+  private _sanitizeComponentPropertyValue(
+    field: PageComponentField,
+    value: unknown,
+  ): Record<string, string>[] {
+    const attributes = this._parseComponentPropertyList(field);
+
+    if (!Array.isArray(value) || !value.length) {
+      throw new Errors.UPDATE_FAILED(`${field.key} 請至少新增一組屬性內容`);
+    }
+
+    return value.map((entry) => {
+      if (!entry || typeof entry !== 'object') {
+        throw new Errors.UPDATE_FAILED(`${field.key} 欄位格式錯誤`);
+      }
+
+      const sanitized: Record<string, string> = {};
+
+      for (const attribute of attributes) {
+        const raw = (entry as any)[attribute];
+        const trimmed = raw === null || raw === undefined ? '' : String(raw).trim();
+        if (!trimmed.length) {
+          throw new Errors.UPDATE_FAILED(`${field.key} 的 ${attribute} 必填`);
+        }
+        sanitized[attribute] = trimmed;
+      }
+
+      return sanitized;
+    });
+  }
+
+  private _parseComponentPropertyList(field: PageComponentField): string[] {
+    if (!field.property) {
+      return ['value'];
+    }
+
+    const attributes = field.property
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item.length);
+
+    return attributes.length ? attributes : ['value'];
   }
 
   private async _getNextOrder(transaction?: Transaction): Promise<number> {

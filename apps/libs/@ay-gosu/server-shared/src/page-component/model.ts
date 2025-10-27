@@ -29,4 +29,4 @@ export class PageComponentModel {
     return wsc.execute('/ws/page-component/updateComponent', payload) as any;
   }
 }
-// 29cc73d06764bdcb552da93857a1736cd3695481148d7a6e023a5be4aec38983
+// 47efbe89bcf97bfe7060068ad1172df8c1f20d8512c28a095df32e0cea80a59c

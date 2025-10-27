@@ -10,4 +10,4 @@ export class UpdatePageComponentDto extends CreatePageComponentDto {
     this.id = json.id ?? 0;
   }
 }
-// 5f04673d737a09c154ad48fc8d4942be3571cc742c0f1db4705ddd9938d68964
+// f0fd69ad849f1d942a3fcc67f970e3fa0fbd0bf5d5761e9af1b82f98baa97fdc

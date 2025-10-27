@@ -6,27 +6,23 @@ import {
   Input,
   Output,
 } from '@angular/core';
+import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { PageComponentDetailDto } from '@ay-gosu/server-shared';
 import {
-  FormArray,
-  FormGroup,
-  ReactiveFormsModule,
-} from '@angular/forms';
-import {
+  CsAlertComponent,
   CsButtonComponent,
   CsImageUploadComponent,
   CsInputComponent,
-  CsSelectComponent,
+  CsSpinnerComponent,
   CsTextareaComponent,
 } from '../component';
 
-type BlockType = 'carousel' | 'banner' | 'image_text';
-type LayoutType =
-  | 'image_only'
-  | 'text_only'
-  | 'image_top_text_bottom'
-  | 'text_top_image_bottom'
-  | 'image_left_text_right'
-  | 'text_left_image_right';
+export interface ComponentFieldConfig {
+  key: string;
+  type: PageComponentDetailDto['fields'][number]['type'];
+  label: string;
+  propertyList: string[];
+}
 
 @Component({
   selector: 'cs-page-content-form',
@@ -34,10 +30,11 @@ type LayoutType =
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    CsAlertComponent,
     CsButtonComponent,
     CsImageUploadComponent,
     CsInputComponent,
-    CsSelectComponent,
+    CsSpinnerComponent,
     CsTextareaComponent,
   ],
   templateUrl: './page-content-form.component.html',
@@ -45,65 +42,46 @@ type LayoutType =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PageContentFormComponent {
-  @Input({ required: true }) form!: FormGroup<{
-    type: FormGroup['controls']['type'];
-    carouselItems: FormArray<FormGroup>;
-    banner: FormGroup;
-    imageTextItems: FormArray<FormGroup>;
-  }>;
+  @Input({ required: true }) form!: FormGroup;
+  @Input() selectedComponent: PageComponentDetailDto | null = null;
+  @Input() componentFieldConfigs: ComponentFieldConfig[] = [];
+  @Input() componentValuesGroup: FormGroup | null = null;
+  @Input() componentLoading = false;
+  @Input() componentError: string | null = null;
 
-  @Input({ required: true }) blockType: BlockType = 'carousel';
+  @Output() addComponentProperty = new EventEmitter<string>();
+  @Output() removeComponentProperty = new EventEmitter<{
+    fieldKey: string;
+    index: number;
+  }>();
 
-  @Output() addCarousel = new EventEmitter<void>();
-  @Output() removeCarousel = new EventEmitter<number>();
-  @Output() addImageText = new EventEmitter<void>();
-  @Output() removeImageText = new EventEmitter<number>();
-
-  public readonly layoutOptions: { value: LayoutType; label: string }[] = [
-    { value: 'image_only', label: '只有圖片' },
-    { value: 'text_only', label: '只有文字' },
-    { value: 'image_top_text_bottom', label: '圖上字下' },
-    { value: 'text_top_image_bottom', label: '字上圖下' },
-    { value: 'image_left_text_right', label: '圖左字右' },
-    { value: 'text_left_image_right', label: '字左圖右' },
-  ];
-
-  public get carouselItems(): FormArray<FormGroup> {
-    return this.form.get('carouselItems') as FormArray<FormGroup>;
+  public get componentValues(): FormGroup | null {
+    return this.componentValuesGroup;
   }
 
-  public get banner(): FormGroup {
-    return this.form.get('banner') as FormGroup;
-  }
-
-  public get imageTextItems(): FormArray<FormGroup> {
-    return this.form.get('imageTextItems') as FormArray<FormGroup>;
-  }
-
-  public needsImage(layout: LayoutType): boolean {
-    return layout !== 'text_only';
-  }
-
-  public needsText(layout: LayoutType): boolean {
-    return layout !== 'image_only';
-  }
-
-  public layoutPreview(layout: LayoutType): string {
-    switch (layout) {
-      case 'image_only':
-        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=IMAGE';
-      case 'text_only':
-        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=TEXT';
-      case 'image_top_text_bottom':
-        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=IMG%0ATEXT';
-      case 'text_top_image_bottom':
-        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=TEXT%0AIMG';
-      case 'image_left_text_right':
-        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=IMG+|+TEXT';
-      case 'text_left_image_right':
-        return 'https://dummyimage.com/120x60/94a3b8/ffffff.png&text=TEXT+|+IMG';
-      default:
-        return '';
+  public propertyArray(
+    field: ComponentFieldConfig,
+  ): FormArray<FormGroup> | null {
+    const group = this.componentValues;
+    if (!group) {
+      return null;
     }
+
+    const control = group.get(field.key);
+    return control instanceof FormArray
+      ? (control as FormArray<FormGroup>)
+      : null;
+  }
+
+  public propertyAttributes(field: ComponentFieldConfig): string[] {
+    return field.propertyList.length ? field.propertyList : ['value'];
+  }
+
+  public handleAddComponentProperty(fieldKey: string): void {
+    this.addComponentProperty.emit(fieldKey);
+  }
+
+  public handleRemoveComponentProperty(fieldKey: string, index: number): void {
+    this.removeComponentProperty.emit({ fieldKey, index });
   }
 }

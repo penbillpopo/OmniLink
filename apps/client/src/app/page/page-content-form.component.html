@@ -1,112 +1,129 @@
-<ng-container [formGroup]="form" [ngSwitch]="blockType">
-  <div *ngSwitchCase="'carousel'" class="block-section">
-    <header class="block-section__header">
-      <h3>輪播項目</h3>
-      <cs-button type="button" variant="ghost" (click)="addCarousel.emit()">
-        新增輪播圖
-      </cs-button>
-    </header>
+<ng-container [formGroup]="form">
+  <cs-alert variant="error" *ngIf="componentError">
+    {{ componentError }}
+  </cs-alert>
 
-    <div class="block-repeat" formArrayName="carouselItems">
-      <div
-        class="block-repeat__item"
-        *ngFor="let group of carouselItems.controls; let i = index"
-        [formGroupName]="i"
-      >
-        <cs-image-upload
-          formControlName="imageUrl"
-          label="圖片上傳"
-        ></cs-image-upload>
-        <cs-input
-          formControlName="link"
-          label="超連結 (選填)"
-          placeholder="https://example.com"
-        ></cs-input>
-        <cs-input
-          formControlName="caption"
-          label="文字說明 (選填)"
-          placeholder="顯示於圖片上的文字"
-        ></cs-input>
-        <cs-button
-          type="button"
-          variant="text"
-          class="block-repeat__remove"
-          (click)="removeCarousel.emit(i)"
-          [disabled]="carouselItems.length <= 1"
-        >
-          移除
-        </cs-button>
-      </div>
-    </div>
+  <div class="component-block__loading" *ngIf="componentLoading">
+    <cs-spinner size="md"></cs-spinner>
+    <span>載入頁面組件欄位...</span>
   </div>
 
-  <div *ngSwitchCase="'banner'" class="block-section" [formGroup]="banner">
-    <div class="block-repeat__item">
-      <cs-image-upload
-        formControlName="imageUrl"
-        label="圖片上傳"
-      ></cs-image-upload>
-      <cs-input
-        formControlName="link"
-        label="按鈕連結 (選填)"
-        placeholder="https://example.com"
-      ></cs-input>
-      <cs-textarea
-        formControlName="caption"
-        label="文字說明 (選填)"
-        [rows]="2"
-      ></cs-textarea>
-    </div>
-  </div>
-
-  <div *ngSwitchCase="'image_text'" class="block-section">
-    <header class="block-section__header">
-      <h3>圖片 / 文字區塊</h3>
-      <cs-button type="button" variant="ghost" (click)="addImageText.emit()">
-        新增圖片與文字
-      </cs-button>
-    </header>
-
-    <div class="block-repeat" formArrayName="imageTextItems">
-      <div
-        class="block-repeat__item"
-        *ngFor="let group of imageTextItems.controls; let i = index"
-        [formGroupName]="i"
-      >
-        <cs-select
-          formControlName="layout"
-          label="版型選擇"
-          [options]="layoutOptions"
-        ></cs-select>
-
-        <cs-image-upload
-          *ngIf="needsImage(group.value.layout)"
-          formControlName="imageUrl"
-          label="圖片上傳"
-        ></cs-image-upload>
-
-        <div class="layout-preview">
-          <img [src]="layoutPreview(group.value.layout)" alt="layout preview" />
+  <ng-container
+    *ngIf="
+      !componentLoading &&
+      selectedComponent &&
+      componentValues as componentForm;
+      else componentEmptyTpl
+    "
+  >
+    <div class="component-fields" [formGroup]="componentForm">
+      <div class="component-field" *ngFor="let field of componentFieldConfigs">
+        <div class="component-field__header">
+          <h4>{{ field.label }}</h4>
+          <span
+            class="component-field__meta"
+            *ngIf="field.type === 'property' && field.propertyList.length"
+          >
+            屬性：{{ field.propertyList.join('、') }}
+          </span>
         </div>
 
-        <cs-textarea
-          *ngIf="needsText(group.value.layout)"
-          formControlName="text"
-          label="文字內容"
-          [rows]="4"
-          placeholder="輸入要呈現的文字"
-        ></cs-textarea>
+        <ng-container [ngSwitch]="field.type">
+          <cs-input
+            *ngSwitchCase="'text'"
+            [formControlName]="field.key"
+            [label]="field.label"
+            placeholder="請輸入內容"
+          ></cs-input>
 
-        <cs-button
-          type="button"
-          variant="text"
-          class="block-repeat__remove"
-          (click)="removeImageText.emit(i)"
-          [disabled]="imageTextItems.length <= 1"
-        >
-          移除
-        </cs-button>
+          <cs-textarea
+            *ngSwitchCase="'textarea'"
+            [formControlName]="field.key"
+            [label]="field.label"
+            [rows]="4"
+            placeholder="請輸入內容"
+          ></cs-textarea>
+
+          <cs-textarea
+            *ngSwitchCase="'richtext'"
+            [formControlName]="field.key"
+            [label]="field.label"
+            [rows]="6"
+            placeholder="支援 HTML 片段"
+          ></cs-textarea>
+
+          <cs-input
+            *ngSwitchCase="'link'"
+            [formControlName]="field.key"
+            [label]="field.label"
+            placeholder="https://example.com"
+          ></cs-input>
+
+          <cs-input
+            *ngSwitchCase="'button'"
+            [formControlName]="field.key"
+            [label]="field.label"
+            placeholder="請輸入按鈕文字"
+          ></cs-input>
+
+          <cs-image-upload
+            *ngSwitchCase="'image'"
+            [formControlName]="field.key"
+            [label]="field.label"
+          ></cs-image-upload>
+
+          <ng-container *ngSwitchCase="'property'">
+            <ng-container *ngIf="propertyArray(field) as propertyList">
+              <div class="component-property__header">
+                <span class="component-field__meta">
+                  共 {{ propertyList.length }} 組
+                </span>
+                <cs-button
+                  variant="ghost"
+                  type="button"
+                  (click)="handleAddComponentProperty(field.key)"
+                >
+                  新增一組
+                </cs-button>
+              </div>
+
+              <div class="component-property__list" [formArrayName]="field.key">
+                <div
+                  class="component-property__item"
+                  *ngFor="let group of propertyList.controls; let i = index"
+                  [formGroupName]="i"
+                >
+                  <div class="component-property__inputs">
+                    <cs-input
+                      *ngFor="let attribute of propertyAttributes(field)"
+                      [formControlName]="attribute"
+                      [label]="attribute"
+                    ></cs-input>
+                  </div>
+                  <cs-button
+                    variant="text"
+                    type="button"
+                    (click)="handleRemoveComponentProperty(field.key, i)"
+                    [disabled]="propertyList.length <= 1"
+                  >
+                    移除
+                  </cs-button>
+                </div>
+              </div>
+            </ng-container>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <div class="component-field component-field--empty" *ngIf="!componentFieldConfigs.length">
+        <span>此頁面組件尚未定義欄位。</span>
       </div>
     </div>
-  </div>
+  </ng-container>
+
+  <ng-template #componentEmptyTpl>
+    <div class="component-block__empty">
+      <span>請先選擇頁面組件。</span>
+    </div>
+  </ng-template>
 </ng-container>

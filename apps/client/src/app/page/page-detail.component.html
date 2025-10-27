@@ -3,14 +3,19 @@
     <cs-toast-container
       class="page-detail__toast"
       *ngIf="toast"
-      [toasts]="[{ id: 'create-block', type: toast.type, message: toast.message }]"
+      [toasts]="[
+        { id: 'create-block', type: toast.type, message: toast.message }
+      ]"
       (dismissed)="toast = null"
     ></cs-toast-container>
 
     <header class="page-detail__header">
       <div>
         <h1>{{ page?.name }}</h1>
-        <p>路徑：{{ page?.slug }} · 建立於 {{ page?.createdAt | date: 'yyyy/MM/dd HH:mm' }}</p>
+        <p>
+          路徑：{{ page?.slug }} · 建立於
+          {{ page?.createdAt | date : 'yyyy/MM/dd HH:mm' }}
+        </p>
         <p class="page-detail__api">API：{{ apiEndpoint }}</p>
       </div>
     </header>
@@ -32,9 +37,15 @@
         </div>
 
         <ul class="block-list" *ngIf="blocks.length">
-          <li class="block-list__item" *ngFor="let block of blocks; trackBy: trackByBlock">
+          <li
+            class="block-list__item"
+            *ngFor="let block of blocks; trackBy: trackByBlock"
+          >
             <div class="block-list__main">
-              <div class="block-list__preview" *ngIf="blockPreviewUrl(block); else noPreviewTpl">
+              <div
+                class="block-list__preview"
+                *ngIf="blockPreviewUrl(block); else noPreviewTpl"
+              >
                 <img [src]="blockPreviewUrl(block)" [alt]="block.name" />
               </div>
               <ng-template #noPreviewTpl>
@@ -50,7 +61,9 @@
                     <p>類型：{{ blockTypeLabel(block.type) }}</p>
                   </div>
                   <div class="block-list__meta">
-                    <span class="block-list__order">排序 #{{ block.order }}</span>
+                    <span class="block-list__order"
+                      >排序 #{{ block.order }}</span
+                    >
                   </div>
                 </div>
 
@@ -59,7 +72,11 @@
                 </p>
 
                 <div class="block-list__actions">
-                  <cs-button variant="ghost" type="button" (click)="openBlockDetail(block)">
+                  <cs-button
+                    variant="ghost"
+                    type="button"
+                    (click)="openBlockDetail(block)"
+                  >
                     檢視內容
                   </cs-button>
                   <cs-button
@@ -97,18 +114,165 @@
         <cs-select
           formControlName="type"
           label="區塊類型"
-          [options]="blockTypes"
+          placeholder="請選擇區塊類型"
+          [options]="blockTypeOptions"
           [required]="true"
+          [errors]="{ required: '請選擇區塊類型' }"
         ></cs-select>
 
-        <cs-page-content-form
-          [form]="blockForm"
-          [blockType]="blockForm.get('type')?.value"
-          (addCarousel)="addCarouselItem()"
-          (removeCarousel)="removeCarouselItem($event)"
-          (addImageText)="addImageTextItem()"
-          (removeImageText)="removeImageTextItem($event)"
-        ></cs-page-content-form>
+        <ng-container [ngSwitch]="blockForm.get('type')?.value">
+          <ng-container *ngSwitchCase="'carousel'">
+            <div class="form-array" formArrayName="carouselItems">
+              <div
+                class="form-array__item"
+                *ngFor="let group of carouselItems.controls; let i = index"
+                [formGroupName]="i"
+              >
+                <cs-image-upload
+                  formControlName="imageUrl"
+                  label="輪播圖片"
+                ></cs-image-upload>
+
+                <div class="page-detail__grid">
+                  <cs-input
+                    formControlName="link"
+                    label="導向連結"
+                    placeholder="https://example.com"
+                  ></cs-input>
+                  <cs-input
+                    formControlName="caption"
+                    label="圖片說明"
+                    placeholder="請輸入說明文字"
+                  ></cs-input>
+                </div>
+
+                <div class="form-array__actions">
+                  <cs-button
+                    variant="text"
+                    type="button"
+                    (click)="removeCarouselItem(i)"
+                    [disabled]="carouselItems.length <= 1"
+                  >
+                    移除此項
+                  </cs-button>
+                </div>
+              </div>
+
+              <cs-button variant="ghost" type="button" (click)="addCarouselItem()">
+                新增輪播項目
+              </cs-button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'banner'">
+            <div class="block-form__section" [formGroup]="banner">
+              <cs-image-upload
+                formControlName="imageUrl"
+                label="Banner 圖片"
+              ></cs-image-upload>
+              <div class="page-detail__grid">
+                <cs-input
+                  formControlName="link"
+                  label="導向連結"
+                  placeholder="https://example.com"
+                ></cs-input>
+                <cs-input
+                  formControlName="caption"
+                  label="文字說明"
+                  placeholder="請輸入文字"
+                ></cs-input>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'image_text'">
+            <div class="form-array" formArrayName="imageTextItems">
+              <div
+                class="form-array__item"
+                *ngFor="let group of imageTextItems.controls; let i = index"
+                [formGroupName]="i"
+              >
+                <cs-select
+                  formControlName="layout"
+                  label="版型"
+                  [options]="imageTextLayoutOptions"
+                  [required]="true"
+                  [errors]="{ required: '請選擇版型' }"
+                ></cs-select>
+
+                <p class="layout-hint">{{ imageTextLayoutHint(group) }}</p>
+
+                <div class="page-detail__grid">
+                  <cs-image-upload
+                    *ngIf="showImageField(group)"
+                    formControlName="imageUrl"
+                    label="圖片"
+                  ></cs-image-upload>
+                  <cs-input
+                    formControlName="title"
+                    label="標題"
+                    placeholder="請輸入標題"
+                  ></cs-input>
+                </div>
+                <cs-textarea
+                  formControlName="description"
+                  label="說明"
+                  rows="3"
+                  placeholder="請輸入說明內容"
+                ></cs-textarea>
+                <cs-textarea
+                  *ngIf="showTextField(group)"
+                  formControlName="text"
+                  label="內文"
+                  rows="4"
+                  placeholder="請輸入內文"
+                  [required]="isTextRequired(group)"
+                  [errors]="{ required: '請輸入內文' }"
+                ></cs-textarea>
+
+                <div class="form-array__actions">
+                  <cs-button
+                    variant="text"
+                    type="button"
+                    (click)="removeImageTextItem(i)"
+                    [disabled]="imageTextItems.length <= 1"
+                  >
+                    移除此項
+                  </cs-button>
+                </div>
+              </div>
+
+              <cs-button variant="ghost" type="button" (click)="addImageTextItem()">
+                新增圖文項目
+              </cs-button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'component'">
+            <cs-select
+              formControlName="componentId"
+              label="頁面組件"
+              placeholder="請選擇頁面組件"
+              [options]="componentSelectOptions"
+              [disabled]="componentLoading || !pageComponents.length"
+              [required]="true"
+              [errors]="{ required: '請選擇頁面組件' }"
+            ></cs-select>
+
+            <cs-page-content-form
+              [form]="blockForm"
+              [selectedComponent]="currentSelectedComponent"
+              [componentFieldConfigs]="componentFieldConfigs"
+              [componentValuesGroup]="componentValues"
+              [componentLoading]="componentLoading"
+              [componentError]="componentError"
+              (addComponentProperty)="addComponentPropertyEntry($event)"
+              (removeComponentProperty)="
+                removeComponentPropertyEntry($event.fieldKey, $event.index)
+              "
+            ></cs-page-content-form>
+          </ng-container>
+        </ng-container>
 
         <cs-alert variant="error" *ngIf="createBlockError">
           {{ createBlockError }}

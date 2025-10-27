@@ -19,7 +19,6 @@ import {
   CreatePageComponentFieldDto,
   PageComponentDetailDto,
   PageComponentFieldDto,
-  PageComponentFieldType,
   UpdatePageComponentDto,
 } from '@ay-gosu/server-shared';
 import { Subscription } from 'rxjs';
@@ -34,6 +33,8 @@ import {
   CsSpinnerComponent,
 } from '../component';
 import { PageComponentDataService } from './page-component-data.service';
+
+type PageComponentFieldType = PageComponentFieldDto['type'];
 
 @Component({
   selector: 'cs-page-components',

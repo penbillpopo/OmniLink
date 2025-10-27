@@ -16,6 +16,8 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import {
   PageBlockDto,
+  PageComponentDetailDto,
+  PageComponentFieldDto,
   PageDetailDto,
   PageDto,
 } from '@ay-gosu/server-shared';
@@ -24,17 +26,21 @@ import {
   CsButtonComponent,
   CsFormComponent,
   CsInputComponent,
+  CsImageUploadComponent,
   CsToastComponent,
   CsSelectComponent,
   CsSpinnerComponent,
   CsTextareaComponent,
   CsDialogComponent,
 } from '../component';
-import { PageContentFormComponent } from './page-content-form.component';
+import { PageContentFormComponent, ComponentFieldConfig } from './page-content-form.component';
 import { PageDataService } from './page-data.service';
+import { PageComponentDataService } from './page-component-data.service';
 import { Subscription } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { UploadService } from '../shared/upload.service';
+
+type ExtendedBlockType = PageBlockDto['type'] | 'component';
 
 @Component({
   selector: 'cs-page-detail',
@@ -45,6 +51,7 @@ import { UploadService } from '../shared/upload.service';
     CsButtonComponent,
     CsFormComponent,
     CsInputComponent,
+    CsImageUploadComponent,
     CsToastComponent,
     CsSelectComponent,
     CsTextareaComponent,
@@ -70,11 +77,22 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   public detailDialogOpen = false;
   public detailBlock: PageBlockDto | null = null;
 
-  public readonly blockTypes = [
-    { value: 'carousel', label: '輪播圖' },
-    { value: 'banner', label: 'Banner 圖' },
-    { value: 'image_text', label: '圖片與文字' },
-  ] as const;
+  public pageComponents: PageComponentDetailDto[] = [];
+  public componentFieldConfigs: ComponentFieldConfig[] = [];
+  public componentLoading = false;
+  public componentError: string | null = null;
+  private readonly _imageTextLayoutSubs = new Map<FormGroup, Subscription>();
+  public readonly blockTypeOptions = [
+    { label: '輪播圖', value: 'carousel' },
+    { label: 'Banner 圖', value: 'banner' },
+    { label: '圖文組', value: 'image_text' },
+    { label: '頁面組件', value: 'component' },
+  ];
+  public readonly imageTextLayoutOptions = [
+    { label: '僅圖片', value: 'image_only' },
+    { label: '僅文字', value: 'text_only' },
+    { label: '圖片與文字', value: 'image_text' },
+  ];
 
 
   public readonly blockForm = this._formBuilder.nonNullable.group({
@@ -87,6 +105,8 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     imageTextItems: this._formBuilder.nonNullable.array([
       this._createImageTextGroup(),
     ]),
+    componentId: this._formBuilder.control<string | null>(null),
+    componentValues: this._formBuilder.nonNullable.group({}),
   });
 
   private readonly _routeSub = this._route.paramMap.subscribe((params) => {
@@ -97,12 +117,14 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   });
 
   private _typeSub?: Subscription;
+  private _componentIdSub?: Subscription;
   private readonly _apiBase = PageDetailComponent._normalizeServerUrl(
     environment.serverUrl?.[0],
   );
 
   public constructor(
     private readonly _pageDataService: PageDataService,
+    private readonly _pageComponentDataService: PageComponentDataService,
     private readonly _route: ActivatedRoute,
     private readonly _formBuilder: FormBuilder,
     private readonly _cdr: ChangeDetectorRef,
@@ -112,18 +134,24 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this._typeSub = this.blockForm
       .get('type')
-      ?.valueChanges.subscribe(() => {
-        this._resetDynamicGroups();
+      ?.valueChanges.subscribe((value) => {
+        this._resetDynamicGroups((value as ExtendedBlockType) ?? 'carousel');
         this.createBlockError = null;
         this._cdr.markForCheck();
       });
 
-    this._resetDynamicGroups(this.blockForm.get('type')?.value as PageBlockDto['type']);
+    this._resetDynamicGroups(
+      (this.blockForm.get('type')?.value as ExtendedBlockType) ?? 'component',
+    );
+
+    void this._ensureComponentsLoaded();
   }
 
   public ngOnDestroy(): void {
     this._routeSub.unsubscribe();
     this._typeSub?.unsubscribe();
+    this._componentIdSub?.unsubscribe();
+    this._disposeAllImageTextGroups();
   }
 
   public async loadPage(id: number): Promise<void> {
@@ -163,56 +191,32 @@ export class PageDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const rawType = this.blockForm.getRawValue().type;
-    if (!this.blockTypes.some((option) => option.value === rawType)) {
-      this.createBlockError = '請選擇區塊類型';
-      this._cdr.markForCheck();
-      return;
-    }
-    const type = rawType as PageBlockDto['type'];
-    const name = this.blockForm.getRawValue().name.trim();
+    const rawValue = this.blockForm.getRawValue();
+    const type = (rawValue.type as ExtendedBlockType) ?? 'carousel';
+    const name = rawValue.name.trim();
 
-    const content = this._buildContent(type);
+    let content: Record<string, unknown> | null = null;
 
-    if (type === 'carousel') {
-      const items = (content?.['items'] as any[]) ?? [];
-      if (!items.length) {
-        this.createBlockError = '請至少新增一個輪播圖項目';
+    if (type === 'component') {
+      if (this.componentLoading) {
+        this.createBlockError = '頁面組件載入中，請稍候再試';
         this._cdr.markForCheck();
         return;
       }
-      const invalid = items.some((item) => !item.imageUrl);
-      if (invalid) {
-        this.createBlockError = '輪播圖項目需要提供圖片網址';
-        this._cdr.markForCheck();
-        return;
-      }
-    }
 
-    if (type === 'banner') {
-      const imageUrl = (content?.['imageUrl'] as string | null) ?? '';
-      if (!imageUrl) {
-        this.createBlockError = '請提供 Banner 的圖片網址';
+      if (!this.pageComponents.length) {
+        this.createBlockError = '尚未建立任何頁面組件，無法新增區塊';
         this._cdr.markForCheck();
         return;
       }
-    }
 
-    if (type === 'image_text') {
-      const items = (content?.['items'] as any[]) ?? [];
-      if (!items.length) {
-        this.createBlockError = '請新增至少一個圖片與文字項目';
+      content = this._buildComponentContent();
+      if (!content) {
         this._cdr.markForCheck();
         return;
       }
-      const invalid = items.some((item) =>
-        this._isImageTextItemInvalid(item.layout, item.imageUrl, item.text),
-      );
-      if (invalid) {
-        this.createBlockError = '請確認圖片或文字欄位已依版型填寫完整';
-        this._cdr.markForCheck();
-        return;
-      }
+    } else {
+      content = this._buildContent(type);
     }
 
     this.creatingBlock = true;
@@ -220,7 +224,7 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     this._cdr.markForCheck();
 
     try {
-      const payload = {
+      const payload: any = {
         pageId: this.page.id,
         name,
         type,
@@ -250,6 +254,7 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   }
 
   public openCreateDialog(): void {
+    void this._ensureComponentsLoaded();
     this._resetCreateFormState();
     this.showCreateDialog = true;
     this._cdr.markForCheck();
@@ -331,13 +336,15 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   }
 
   public blockTypeLabel(type: PageBlockDto['type']): string {
-    switch (type) {
+    switch (type as ExtendedBlockType) {
       case 'carousel':
         return '輪播圖';
       case 'banner':
         return 'Banner 圖';
       case 'image_text':
         return '圖片與文字';
+      case 'component':
+        return '頁面組件';
       default:
         return type;
     }
@@ -345,7 +352,17 @@ export class PageDetailComponent implements OnInit, OnDestroy {
 
   public blockSummary(block: PageBlockDto): string {
     const content = block.content as any;
-    switch (block.type) {
+    switch (block.type as ExtendedBlockType) {
+      case 'component': {
+        const componentId = Number((content?.componentId as string | number | null) ?? NaN);
+        const component = this.pageComponents.find((item) => item.id === componentId);
+        const fieldCount = Array.isArray(component?.fields)
+          ? component!.fields.length
+          : Object.keys((content?.values as Record<string, unknown> | undefined) ?? {}).length;
+        const label = component?.name ?? (Number.isNaN(componentId) ? '未指定組件' : `組件 #${componentId}`);
+        return `${label} · ${fieldCount} 個欄位`;
+      }
+
       case 'carousel': {
         const items = content?.items ?? [];
         const count = Array.isArray(items) ? items.length : 0;
@@ -403,6 +420,46 @@ export class PageDetailComponent implements OnInit, OnDestroy {
       return this._uploadService.resolveUrl(item?.imageUrl ?? null);
     }
 
+    if ((block.type as ExtendedBlockType) === 'component') {
+      const componentId = Number(content?.componentId ?? NaN);
+      const component = this.pageComponents.find((item) => item.id === componentId);
+      const values = (content?.values as Record<string, unknown> | undefined) ?? {};
+
+      if (component) {
+        const imageField = component.fields?.find((field) => field.type === 'image');
+        if (imageField) {
+          const imageValue = values[imageField.key];
+          if (typeof imageValue === 'string' && imageValue.trim().length) {
+            return this._uploadService.resolveUrl(imageValue);
+          }
+        }
+
+        const propertyField = component.fields?.find((field) =>
+          field.type === 'property' &&
+          this._parsePropertyList(field).some((attribute) =>
+            attribute.toLowerCase().includes('image'),
+          ),
+        );
+
+        if (propertyField) {
+          const entries = values[propertyField.key];
+          const attributes = this._parsePropertyList(propertyField);
+          const imageAttr = attributes.find((attribute) =>
+            attribute.toLowerCase().includes('image'),
+          );
+
+          if (
+            Array.isArray(entries) &&
+            entries.length &&
+            imageAttr &&
+            typeof entries[0]?.[imageAttr] === 'string'
+          ) {
+            return this._uploadService.resolveUrl(entries[0][imageAttr]);
+          }
+        }
+      }
+    }
+
     return null;
   }
 
@@ -430,14 +487,42 @@ export class PageDetailComponent implements OnInit, OnDestroy {
       }
 
       case 'image_text': {
-        const items = this.imageTextItems.controls
-          .map((group) => group.getRawValue())
-          .map(({ layout, imageUrl, title, description, text }) => ({
-            layout,
-            imageUrl: imageUrl?.trim() || null,
-            title: title?.trim() || null,
-            description: description?.trim() || null,
-            text: text?.trim() || null,
+        const rawItems = this.imageTextItems.controls.map((group) =>
+          group.getRawValue() as {
+            layout: string;
+            imageUrl: string | null;
+            title: string | null;
+            description: string | null;
+            text: string | null;
+          },
+        );
+
+        let invalid = false;
+        rawItems.forEach((item, index) => {
+          if (this._isImageTextItemInvalid(item.layout, item.imageUrl, item.text)) {
+            invalid = true;
+            const group = this.imageTextItems.at(index) as FormGroup;
+            if (item.layout !== 'text_only') {
+              group.get('imageUrl')?.markAsTouched();
+            }
+            if (item.layout !== 'image_only') {
+              group.get('text')?.markAsTouched();
+            }
+          }
+        });
+
+        if (invalid) {
+          this.createBlockError = '請依版型完成圖文欄位';
+          this._cdr.markForCheck();
+          return null;
+        }
+
+        const items = rawItems.map(({ layout, imageUrl, title, description, text }) => ({
+          layout,
+          imageUrl: imageUrl?.trim() || null,
+          title: title?.trim() || null,
+          description: description?.trim() || null,
+          text: text?.trim() || null,
           }));
         return { items };
       }
@@ -445,6 +530,70 @@ export class PageDetailComponent implements OnInit, OnDestroy {
       default:
         return null;
     }
+  }
+
+  private _buildComponentContent(): Record<string, unknown> | null {
+    const component = this.currentSelectedComponent;
+    if (!component) {
+      this.createBlockError = '請先選擇頁面組件';
+      this.blockForm.get('componentId')?.markAsTouched();
+      return null;
+    }
+
+    const valuesGroup = this.componentValues;
+    const values: Record<string, unknown> = {};
+
+    for (const config of this.componentFieldConfigs) {
+      if (config.type === 'property') {
+        const array = valuesGroup.get(config.key) as FormArray<FormGroup> | null;
+        if (!array || array.length === 0) {
+          this.createBlockError = `${config.label} 請新增至少一組資料`;
+          return null;
+        }
+
+        const entries: Record<string, string>[] = [];
+        const attributes = config.propertyList.length
+          ? config.propertyList
+          : ['value'];
+
+        for (let index = 0; index < array.length; index += 1) {
+          const group = array.at(index) as FormGroup;
+          const raw = group.getRawValue() as Record<string, unknown>;
+          const normalized: Record<string, string> = {};
+          let invalid = false;
+
+          attributes.forEach((attribute) => {
+            const control = group.get(attribute);
+            const rawValue = raw[attribute] ?? '';
+            const trimmed = typeof rawValue === 'string' ? rawValue.trim() : '';
+            if (!trimmed.length) {
+              control?.markAsTouched();
+              invalid = true;
+            }
+            normalized[attribute] = trimmed;
+          });
+
+          if (invalid) {
+            this.createBlockError = `${config.label} 的屬性請完整填寫`;
+            return null;
+          }
+
+          entries.push(normalized);
+        }
+
+        values[config.key] = entries;
+        continue;
+      }
+
+      const control = valuesGroup.get(config.key);
+      const sanitized = this._sanitizeComponentValue(config.type, control?.value);
+      values[config.key] = sanitized;
+    }
+
+    return {
+      componentId: component.id,
+      values,
+    };
   }
 
   private _isImageTextItemInvalid(
@@ -466,12 +615,48 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async _ensureComponentsLoaded(force = false): Promise<void> {
+    if (!force && (this.pageComponents.length || this.componentLoading)) {
+      return;
+    }
+
+    this.componentLoading = true;
+    this.componentError = null;
+    this._cdr.markForCheck();
+
+    try {
+      this.pageComponents = await this._pageComponentDataService.getComponentList();
+
+      if (this._isComponentType()) {
+        this._resetDynamicGroups('component');
+      }
+    } catch (error) {
+      console.error('Failed to load page components', error);
+      this.componentError = this._resolveError(error);
+    } finally {
+      this.componentLoading = false;
+      this._cdr.markForCheck();
+    }
+  }
+
   private _resetDynamicGroups(
-    type: PageBlockDto['type'] = (this.blockForm.get('type')?.value ?? 'carousel') as PageBlockDto['type'],
-  ) {
+    type: ExtendedBlockType = (this.blockForm.get('type')?.value as ExtendedBlockType) ?? 'component',
+  ): void {
     this.carouselItems.clear();
+    this._disposeAllImageTextGroups();
     this.imageTextItems.clear();
     this.blockForm.setControl('banner', this._createBannerGroup());
+
+    const componentValuesGroup = this._formBuilder.nonNullable.group({});
+    this.blockForm.setControl('componentValues', componentValuesGroup);
+    this.componentFieldConfigs = [];
+
+    const componentIdControl = this.blockForm.get('componentId');
+    componentIdControl?.setValue(null, { emitEvent: false });
+    componentIdControl?.clearValidators();
+    componentIdControl?.updateValueAndValidity({ emitEvent: false });
+
+    this._componentIdSub?.unsubscribe();
 
     if (type === 'carousel') {
       this.carouselItems.push(this._createCarouselGroup());
@@ -480,6 +665,27 @@ export class PageDetailComponent implements OnInit, OnDestroy {
     if (type === 'image_text') {
       this.imageTextItems.push(this._createImageTextGroup());
     }
+
+    if (type === 'component') {
+      componentIdControl?.addValidators([Validators.required]);
+      componentIdControl?.updateValueAndValidity({ emitEvent: false });
+
+      const initial = this.pageComponents[0] ?? null;
+      if (initial) {
+        componentIdControl?.setValue(initial.id.toString(), { emitEvent: false });
+      }
+
+      void this._handleComponentSelection(componentIdControl?.value ?? initial?.id ?? null);
+
+      this._componentIdSub = componentIdControl?.valueChanges.subscribe((value) => {
+        void this._handleComponentSelection(value);
+      });
+    } else {
+      this._configureComponentFields(null);
+    }
+
+    componentIdControl?.markAsPristine();
+    componentIdControl?.markAsUntouched();
   }
 
   public get carouselItems(): FormArray<FormGroup> {
@@ -492,6 +698,31 @@ export class PageDetailComponent implements OnInit, OnDestroy {
 
   public get imageTextItems(): FormArray<FormGroup> {
     return this.blockForm.get('imageTextItems') as FormArray<FormGroup>;
+  }
+
+  public get componentValues(): FormGroup {
+    return this.blockForm.get('componentValues') as FormGroup;
+  }
+
+  public get currentSelectedComponent(): PageComponentDetailDto | null {
+    const controlValue = this.blockForm.get('componentId')?.value;
+    if (controlValue === null || controlValue === undefined || controlValue === '') {
+      return null;
+    }
+
+    const parsed = Number(controlValue);
+    if (Number.isNaN(parsed)) {
+      return null;
+    }
+
+    return this.pageComponents.find((item) => item.id === parsed) ?? null;
+  }
+
+  public get componentSelectOptions(): { label: string; value: string }[] {
+    return this.pageComponents.map((item) => ({
+      label: item.name,
+      value: item.id.toString(),
+    }));
   }
 
   public addCarouselItem(): void {
@@ -511,9 +742,49 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   }
 
   public removeImageTextItem(index: number): void {
-    if (this.imageTextItems.length <= 1) return;
+    if (this.imageTextItems.length <= 1 || index < 0 || index >= this.imageTextItems.length) {
+      return;
+    }
+
+    const group = this.imageTextItems.at(index) as FormGroup | null;
+    if (group) {
+      this._disposeImageTextGroup(group);
+    }
+
     this.imageTextItems.removeAt(index);
     this._cdr.markForCheck();
+  }
+
+  public addComponentPropertyEntry(fieldKey: string): void {
+    const config = this.componentFieldConfigs.find((item) => item.key === fieldKey);
+    if (!config) {
+      return;
+    }
+
+    const array = this.componentValues.get(fieldKey) as FormArray<FormGroup> | null;
+    if (!array) {
+      return;
+    }
+
+    array.push(this._createComponentPropertyGroup(config));
+    this.componentValues.markAsDirty();
+    this._cdr.markForCheck();
+  }
+
+  public removeComponentPropertyEntry(fieldKey: string, index: number): void {
+    const array = this.componentValues.get(fieldKey) as FormArray<FormGroup> | null;
+    if (!array || array.length <= 1 || index < 0 || index >= array.length) {
+      return;
+    }
+
+    array.removeAt(index);
+    this.componentValues.markAsDirty();
+    this._cdr.markForCheck();
+  }
+
+  public async refreshComponents(): Promise<void> {
+    await this._ensureComponentsLoaded(true);
+    this._resetDynamicGroups('component');
   }
 
   private _createCarouselGroup(): FormGroup {
@@ -533,13 +804,229 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   }
 
   private _createImageTextGroup(): FormGroup {
-    return this._formBuilder.nonNullable.group({
+    const group = this._formBuilder.nonNullable.group({
       layout: ['image_only', Validators.required],
       imageUrl: [''],
       title: [''],
       description: [''],
       text: [''],
     });
+
+    this._registerImageTextLayoutHandler(group);
+    return group;
+  }
+
+  private _registerImageTextLayoutHandler(group: FormGroup): void {
+    const layoutControl = group.get('layout');
+    if (!layoutControl) {
+      return;
+    }
+
+    this._updateImageTextValidators(group);
+
+    this._imageTextLayoutSubs.get(group)?.unsubscribe();
+    const subscription = layoutControl.valueChanges.subscribe(() => {
+      this._updateImageTextValidators(group);
+      this._cdr.markForCheck();
+    });
+
+    this._imageTextLayoutSubs.set(group, subscription);
+  }
+
+  private _disposeImageTextGroup(group: FormGroup): void {
+    const subscription = this._imageTextLayoutSubs.get(group);
+    if (subscription) {
+      subscription.unsubscribe();
+      this._imageTextLayoutSubs.delete(group);
+    }
+  }
+
+  private _disposeAllImageTextGroups(): void {
+    this.imageTextItems.controls.forEach((control) => {
+      if (control instanceof FormGroup) {
+        this._disposeImageTextGroup(control);
+      }
+    });
+  }
+
+  private _updateImageTextValidators(group: FormGroup): void {
+    const layout = (group.get('layout')?.value as string) ?? 'image_only';
+    const imageControl = group.get('imageUrl');
+    const textControl = group.get('text');
+
+    if (imageControl) {
+      imageControl.clearValidators();
+      if (layout !== 'text_only') {
+        imageControl.addValidators([Validators.required]);
+      }
+      imageControl.updateValueAndValidity({ emitEvent: false });
+    }
+
+    if (textControl) {
+      textControl.clearValidators();
+      if (layout !== 'image_only') {
+        textControl.addValidators([Validators.required]);
+      }
+      textControl.updateValueAndValidity({ emitEvent: false });
+    }
+  }
+
+  public showImageField(group: FormGroup): boolean {
+    const layout = (group.get('layout')?.value as string) ?? 'image_only';
+    return layout !== 'text_only';
+  }
+
+  public showTextField(group: FormGroup): boolean {
+    const layout = (group.get('layout')?.value as string) ?? 'image_only';
+    return layout !== 'image_only';
+  }
+
+  public isTextRequired(group: FormGroup): boolean {
+    const layout = (group.get('layout')?.value as string) ?? 'image_only';
+    return layout !== 'image_only';
+  }
+
+  public imageTextLayoutHint(group: FormGroup): string {
+    const layout = (group.get('layout')?.value as string) ?? 'image_only';
+    switch (layout) {
+      case 'text_only':
+        return '此版型僅顯示文字，請輸入內文。';
+      case 'image_text':
+        return '此版型顯示圖片與文字，請完整填寫。';
+      default:
+        return '此版型僅顯示圖片，請提供圖片網址。';
+    }
+  }
+
+  private _configureComponentFields(
+    component: PageComponentDetailDto | null,
+  ): void {
+    const valuesGroup = this.componentValues;
+    Object.keys(valuesGroup.controls).forEach((key) => {
+      valuesGroup.removeControl(key);
+    });
+
+    if (!component) {
+      this.componentFieldConfigs = [];
+      this._cdr.markForCheck();
+      return;
+    }
+
+    const configs: ComponentFieldConfig[] = (component.fields ?? []).map((field) => ({
+      key: field.key,
+      type: field.type,
+      label: this._formatFieldLabel(field.key),
+      propertyList: this._parsePropertyList(field),
+    }));
+
+    this.componentFieldConfigs = configs;
+
+    configs.forEach((config) => {
+      if (config.type === 'property') {
+        const array = this._formBuilder.array<FormGroup>([]);
+        array.push(this._createComponentPropertyGroup(config));
+        valuesGroup.addControl(config.key, array);
+      } else {
+        valuesGroup.addControl(config.key, this._formBuilder.control(''));
+      }
+    });
+
+    valuesGroup.markAsPristine();
+    valuesGroup.markAsUntouched();
+    this._cdr.markForCheck();
+  }
+
+  private async _handleComponentSelection(value: unknown): Promise<void> {
+    const component = await this._resolveComponentWithDetail(value);
+    this._configureComponentFields(component);
+    this._cdr.markForCheck();
+  }
+
+  private async _resolveComponentWithDetail(
+    value: unknown,
+  ): Promise<PageComponentDetailDto | null> {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) {
+      return null;
+    }
+
+    let component = this.pageComponents.find((item) => item.id === parsed) ?? null;
+
+    if (!component || !component.fields?.length) {
+      try {
+        const detail = await this._pageComponentDataService.getComponentDetail(parsed);
+        this.pageComponents = this.pageComponents.map((item) =>
+          item.id === detail.id ? detail : item,
+        );
+        component = detail;
+      } catch (error) {
+        console.error('Failed to load component detail', error);
+        this.componentError = this._resolveError(error);
+      }
+    }
+
+    return component;
+  }
+
+  private _parsePropertyList(field: PageComponentFieldDto | null | undefined): string[] {
+    if (!field?.property) {
+      return ['value'];
+    }
+
+    const attributes = field.property
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item.length);
+
+    return attributes.length ? attributes : ['value'];
+  }
+
+  private _createComponentPropertyGroup(config: ComponentFieldConfig): FormGroup {
+    const attributes = config.propertyList.length ? config.propertyList : ['value'];
+    const group = this._formBuilder.nonNullable.group({});
+
+    attributes.forEach((attribute) => {
+      group.addControl(attribute, this._formBuilder.control(''));
+    });
+
+    return group;
+  }
+
+  private _sanitizeComponentValue(
+    type: ComponentFieldConfig['type'],
+    value: unknown,
+  ): string | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const stringValue = String(value);
+    if (type === 'richtext') {
+      return stringValue.length ? stringValue : null;
+    }
+
+    const trimmed = stringValue.trim();
+    return trimmed.length ? trimmed : null;
+  }
+
+  private _formatFieldLabel(key: string): string {
+    if (!key) {
+      return key;
+    }
+
+    return key
+      .split('_')
+      .filter((segment) => segment.length)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  private _isComponentType(): boolean {
+    return (this.blockForm.get('type')?.value as ExtendedBlockType) === 'component';
   }
 
   private _resolveError(error: unknown): string {
@@ -588,11 +1075,12 @@ export class PageDetailComponent implements OnInit, OnDestroy {
   }
 
   private _resetCreateFormState(
-    type: PageBlockDto['type'] = 'carousel',
+    type: ExtendedBlockType = 'carousel',
   ): void {
     this.blockForm.reset({
       name: '',
       type,
+      componentId: null,
     });
     this._resetDynamicGroups(type);
     this.blockForm.markAsPristine();
