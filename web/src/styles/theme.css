@@ -1,0 +1,76 @@
+:root {
+  color-scheme: light;
+  --page-max-width: 1200px;
+  --accent: #18181b;
+  --accent-contrast: #ffffff;
+  --muted: #f4f4f5;
+  --muted-strong: #71717a;
+  --border: #e4e4e7;
+  --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.1);
+  --radius-large: 20px;
+  --radius-medium: 14px;
+  --radius-small: 10px;
+  --transition-base: all 220ms ease;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #fdfdfd;
+  color: #18181b;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.page-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.solid-button,
+.ghost-button {
+  border-radius: 999px;
+  padding: 0.6rem 1.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+  border: 1px solid transparent;
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.solid-button {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.solid-button:hover,
+.solid-button:focus-visible {
+  background: #0f172a;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+}
+
+.ghost-button {
+  background: transparent;
+  color: var(--accent);
+  border-color: rgba(24, 24, 27, 0.14);
+}
+
+.ghost-button:hover,
+.ghost-button:focus-visible {
+  background: rgba(24, 24, 27, 0.06);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

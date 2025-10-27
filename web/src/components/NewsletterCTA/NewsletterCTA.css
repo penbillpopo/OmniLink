@@ -1,0 +1,66 @@
+.newsletter {
+  background: linear-gradient(135deg, rgba(24, 24, 27, 0.95) 0%, rgba(39, 39, 42, 0.88) 100%);
+  color: #ffffff;
+  border-radius: var(--radius-large);
+  margin: 0 clamp(1rem, 4vw, 3rem);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.newsletter-inner {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem);
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-items: center;
+}
+
+.newsletter-copy h2 {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  margin-top: 0.4rem;
+}
+
+.newsletter-copy p {
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.7;
+}
+
+.newsletter-form {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.newsletter-form input {
+  flex: 1;
+  min-width: 220px;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.newsletter-form input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.newsletter-form input:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 640px) {
+  .newsletter-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .newsletter-form input {
+    width: 100%;
+  }
+}

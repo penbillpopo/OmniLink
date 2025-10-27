@@ -1,0 +1,32 @@
+.home-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3rem, 8vw, 6rem);
+  padding-bottom: 6rem;
+}
+
+.section-heading {
+  max-width: var(--page-max-width);
+  margin: 0 auto 2.5rem;
+  padding: 0 clamp(1rem, 4vw, 3rem);
+}
+
+.eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  color: var(--muted-strong);
+  margin-bottom: 0.6rem;
+}
+
+.section-heading h2 {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  margin-bottom: 1rem;
+}
+
+.section-heading p {
+  font-size: 1rem;
+  max-width: 640px;
+  color: #3f3f46;
+}
